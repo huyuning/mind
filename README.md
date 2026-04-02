@@ -236,7 +236,7 @@ Anchor → Decide → Reflect → Next
 | `build.sh` | Build script / 编译脚本 |
 | `black_hole_analysis.py` | Black hole data analysis / 黑洞数据分析 |
 | `cosmology_integration.py` | Cosmology observation integration / 宇宙观测整合 |
-| `docs/SIMULATION_REALITY_DUALITY.md` | Algebraic structure / 代数结构 (v1.16) |
+| `docs/SIMULATION_REALITY_DUALITY.md` | Algebraic structure / 代数结构 (v1.17) |
 | `docs/THEORY_FRAMEWORK.md` | Theory framework / 理论框架 |
 
 ---
@@ -291,6 +291,7 @@ Anchor → Decide → Reflect → Next
 - [x] 数值常量推导 / Numerical constants derived (v1.14)
 - [x] 时间流速层级 / Time flow level hierarchy (v1.15)
 - [x] 时空非均匀性与复杂系统频谱 / Spacetime inhomogeneity and complex system spectrum (v1.16)
+- [x] 层级距离指数缩放 / Level distance exponential scaling (v1.17)
 - [ ] 多智能体交互理论 / Multi-agent theory
 - [ ] 可检验预测验证 / Testable predictions
 
@@ -321,6 +322,6 @@ Anchor → Decide → Reflect → Next
 ---
 
 *最后更新 / Last Updated: 2026-04-02*
-*版本 / Version: v1.16*
+*版本 / Version: v1.17*
 *理论来源 / Theory: 分形嵌套宇宙理论 / Fractal Nested Universe Theory*
 *仓库 / Repository: https://github.com/huyuning/mind*

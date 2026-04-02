@@ -227,17 +227,17 @@ Anchor → Decide → Reflect → Next
 
 ## 项目文件 / Project Files
 
-| 文件/File | 说明/Description |
-|----------|------------------|
-| `memory_bit_flip_test.cu` | CUDA比特翻转测试 / CUDA bit flip test |
-| `consciousness_experiment.py` | 意识涌现实验 / Consciousness experiment |
-| `bit_ops.c` / `bit_ops.h` | C微观操作层 / C micro operations |
-| `flip_level.c` / `flip_level.h` | 翻转层级处理 / Flip level processing |
-| `build.sh` | 编译脚本 / Build script |
-| `black_hole_analysis.py` | 黑洞数据分析 / Black hole analysis |
-| `cosmology_integration.py` | 宇宙观测整合 / Cosmology integration |
-| `docs/SIMULATION_REALITY_DUALITY.md` | 代数结构 / Algebraic structure (v1.12) |
-| `docs/THEORY_FRAMEWORK.md` | 理论框架 / Theory framework |
+| File / 文件 | Description / 说明 |
+|-------------|---------------------|
+| `memory_bit_flip_test.cu` | CUDA bit flip test / CUDA比特翻转测试 |
+| `consciousness_experiment.py` | Consciousness emergence experiment / 意识涌现实验 |
+| `bit_ops.c` / `bit_ops.h` | C micro operations layer / C微观操作层 |
+| `flip_level.c` / `flip_level.h` | Flip level processing / 翻转层级处理 |
+| `build.sh` | Build script / 编译脚本 |
+| `black_hole_analysis.py` | Black hole data analysis / 黑洞数据分析 |
+| `cosmology_integration.py` | Cosmology observation integration / 宇宙观测整合 |
+| `docs/SIMULATION_REALITY_DUALITY.md` | Algebraic structure / 代数结构 (v1.12) |
+| `docs/THEORY_FRAMEWORK.md` | Theory framework / 理论框架 |
 
 ---
 

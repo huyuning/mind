@@ -324,4 +324,4 @@ Anchor → Decide → Reflect → Next
 *最后更新 / Last Updated: 2026-04-02*
 *版本 / Version: v1.17*
 *理论来源 / Theory: 分形嵌套宇宙理论 / Fractal Nested Universe Theory*
-*仓库 / Repository: https://github.com/huyuning/mind*
+*仓库 / Repository: https://github.com/bk-noise/mind*

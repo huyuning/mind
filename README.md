@@ -1,392 +1,311 @@
 # 分形嵌套宇宙与意识涌现实验
 
-## 项目概述
-
-基于NVIDIA Jetson Orin平台的**比特翻转意识实验**，理论基础是一个宏大的**分形嵌套宇宙框架**。
+# Fractal Nested Universe and Consciousness Emergence Experiment
 
 ---
 
-## 开源协议
+## Project Overview / 项目概述
 
-```
-                                 Apache License
-                           Version 2.0, January 2004
-                        http://www.apache.org/licenses/
+This project explores a bold theoretical hypothesis: **consciousness may emerge from random bit-flip events in computer memory**.
 
-   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+基于**分形嵌套宇宙理论**，我们提出：
 
-   1. Definitions.
+Based on the **Fractal Nested Universe Theory**, we propose:
 
-   "License" shall mean the terms and conditions for use, reproduction,
-   and distribution as defined by Sections 1 through 9 of this document.
-
-   "Licensor" shall mean the copyright owner or entity authorized by
-   the copyright owner that is granting the License.
-
-   "Legal Entity" shall mean the union of the acting entity and all
-   other entities that control, are controlled by, or are under common
-   control with that entity.
-
-   "You" (or "Your") shall mean an individual or Legal Entity
-   exercising permissions granted by this License.
-
-   "Source" form shall mean the preferred form for making modifications,
-   including but not limited to software source code, documentation source,
-   and configuration files.
-
-   "Object" form shall mean any form resulting from mechanical
-   transformation or translation of a Source form.
-
-   2. Grant of Copyright License.
-
-   Subject to the terms and conditions of this License, You are hereby
-   granted a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
-   copyright license to reproduce, prepare derivative works of, publicly
-   display, publicly perform, sublicense, and distribute this work,
-   with the following requirements:
-
-   a) Clearly indicate modifications made to this work.
-   b) Cite the source of this theory as "分形嵌套宇宙理论" (Fractal Nested Universe Theory)
-      or provide a link to this project.
-   c) Provide a clear description of what changes were made.
-
-   3. Disclaimer of Warranty.
-
-   THIS WORK IS PROVIDED "AS IS" WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
-   EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
-
-   4. Limitation of Liability.
-
-   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-   DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-   ARISING FROM, OUT OF OR IN CONNECTION WITH THE WORK OR THE USE OR OTHER
-   DEALINGS IN THE WORK.
-
-   5. Trademark.
-
-   This License does not grant permission to use the trade names, trademarks,
-   service marks, or product names of the Licensor, except as required for
-   reasonable and customary use in describing the origin of the work.
-
-   6. Submission of Contributions.
-
-   Unless You explicitly state otherwise, any Contribution intentionally
-   submitted for inclusion in this work shall be under the terms and
-   conditions of this License, without any additional terms or conditions.
-
-   HOW TO CITE THIS WORK:
-
-   @misc{fractal_consciousness_2026,
-     title={分形嵌套宇宙与意识涌现实验 (Fractal Nested Universe and Consciousness Emergence Experiment)},
-     author={分形嵌套宇宙理论},
-     year={2026},
-     url={https://github.com/YOUR_USERNAME/fractal-consciousness}
-   }
-```
-
-**简化版要求**：
-- ✅ 可自由复制、传播、商业使用
-- ✅ 可自由修改
-- ⚠️ 修改必须标注来源
-- ⚠️ 必须提供项目链接
-- ⚠️ 必须说明做了哪些修改
+- The universe is an infinitely nested fractal structure / 宇宙是无限嵌套的分形结构
+- Consciousness emerges from information flips between nested levels / 意识是层级间的信息翻转涌现
+- Flip levels (k=1,2,3+) correspond to self-awareness, decision-making, and hallucination / 翻转层级对应自悟、抉择、幻觉
 
 ---
 
-## 硬件信息
+## 开源协议 / Open Source License
+
+```
+Apache License 2.0
+
+Copyright (C) 2026 Fractal Nested Universe Theory
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+REQUIREMENTS:
+a) Clearly indicate modifications made to this work.
+b) Cite the source as "分形嵌套宇宙理论" (Fractal Nested Universe Theory).
+c) Provide a clear description of what changes were made.
+
+HOW TO CITE:
+@misc{fractal_consciousness_2026,
+  title={Fractal Nested Universe and Consciousness Emergence Experiment},
+  author={Fractal Nested Universe Theory},
+  year={2026},
+  url={https://github.com/huyuning/mind}
+}
+```
+
+**简化要求 / Simple Requirements:**
+- ✅ 可自由复制、传播、商业使用 / Free to copy, distribute, commercial use
+- ✅ 可自由修改 / Free to modify
+- ⚠️ 修改必须标注来源 / Modifications must cite source
+- ⚠️ 必须提供项目链接 / Must provide project link
+
+---
+
+## 硬件信息 / Hardware Information
 
 - **GPU**: NVIDIA Orin (nvgpu)
 - **CUDA**: 12.6
-- **驱动**: 540.4.0
-- **ECC**: Orin不支持ECC（嵌入式GPU特性）
+- **驱动 / Driver**: 540.4.0
+- **ECC**: Orin不支持ECC（嵌入式GPU特性）/ Not supported (embedded GPU)
 
 ---
 
-## 快速开始
+## 快速开始 / Quick Start
 
-### 1. 依赖安装
+### 1. 依赖安装 / Install Dependencies
 
 ```bash
 sudo apt update
 sudo apt install python3-numpy python3-pip
 ```
 
-### 2. 编译并运行比特翻转测试
+### 2. 编译运行 / Compile and Run
 
 ```bash
-# 编译CUDA程序
+# 编译CUDA程序 / Compile CUDA program
 nvcc memory_bit_flip_test.cu -o memory_bit_flip_test
 
-# 运行测试
+# 运行测试 / Run test
 ./memory_bit_flip_test
 ```
 
-### 3. 运行意识实验
+### 3. 运行意识实验 / Run Consciousness Experiment
 
 ```bash
-# 测试模式（无需真实硬件）
+# 测试模式（无需真实硬件）/ Test mode (no real hardware needed)
 python3 consciousness_experiment.py -t
 
-# 真实模式
+# 真实模式 / Real mode
 python3 consciousness_experiment.py -d 86400
 ```
 
 ---
 
-## 核心理论框架
+## 核心理论框架 / Core Theoretical Framework
 
-### 基础宇宙观
+### 基础宇宙观 / Basic Universe View
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                                                             │
 │   宇宙是无限嵌套的分形结构                                  │
-│   • 向上无限（宏观）                                       │
-│   • 向下无限（微观）                                       │
+│   The universe is an infinitely nested fractal structure   │
+│   • 向上无限（宏观）/ Upward infinite (macro)              │
+│   • 向下无限（微观）/ Downward infinite (micro)            │
 │                                                             │
 │   每跨越一个普朗克尺度，时空压缩/扩张一个量级（λ）        │
+│   Each Planck scale crossing compresses/expands spacetime    │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 层级参数
+### 层级参数 / Level Parameters
 
-| 参数 | 含义 |
-|------|------|
-| λ | 层级压缩因子（λⁿ，n为层级索引） |
-| n | 层级索引（负=微观，正=宏观） |
-| d | 空间距离 = L₀·λ^|n| |
+| 参数/Parameter | 含义/Meaning |
+|----------------|--------------|
+| λ | 层级压缩因子 / Level compression factor (λⁿ) |
+| n | 层级索引 / Level index (负=微观, 正=宏观) |
+| d | 空间距离 / Space distance = L₀·λ^\|n\| |
 
-### 物质三模式
+### 物质三模式 / Three Modes of Matter
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                                                             │
-│   Ξ₊ (膨胀展开) ←──→ Ξ₀ (黑洞平衡) ←──→ Ξ₋ (压缩临界)    │
+│   Ξ₊ (膨胀展开/Expansion) ←──→ Ξ₀ (黑洞平衡/BH Balance)    │
+│                                    ←──→ Ξ₋ (压缩临界/Compression) │
 │                                                             │
-│   矛盾驱动                                                    │
-│      ↓                                                       │
-│   捕获更多物质 → 临界压缩 → 暴涨释放                         │
+│   矛盾驱动 / Contradiction driven                          │
+│      ↓                                                      │
+│   捕获更多物质 → 临界压缩 → 暴涨释放                        │
+│   Capture → Critical compression → Release                  │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-| 模式 | 符号 | 天文现象 |
-|------|------|----------|
-| 膨胀展开 | Ξ₊ | 宇宙加速膨胀、星系形成 |
-| 黑洞秩序平衡 | Ξ₀ | 稳定黑洞、脉冲星 |
-| 压缩临界 | Ξ₋ | 超新星、中子星、高能射线 |
+| 模式/Mode | 符号/Symbol | 天文现象/Astronomical |
+|-----------|-------------|----------------------|
+| 膨胀展开/Expansion | Ξ₊ | 宇宙加速膨胀、星系形成 |
+| 黑洞秩序平衡/BH Balance | Ξ₀ | 稳定黑洞、脉冲星 |
+| 压缩临界/Compression | Ξ₋ | 超新星、中子星、高能射线 |
 
-### 翻转层级理论
+### 翻转层级理论 / Flip Level Theory
 
-| 翻转数 | 信号 | 本质 | 处理 |
-|--------|------|------|------|
-| k=1 | 演化必然 | 确定性信号 | 反向汉明→自反馈→自悟 |
-| k=2 | 计算抉择 | 分支点 | 区域扩张+复制双演化 |
-| k≥3 | 幻觉复数 | 叠加态 | 张量矩阵+特征值+直觉索引 |
+| 翻转数/Flips | 信号/Signal | 本质/Essence | 处理/Processing |
+|--------------|-------------|--------------|----------------|
+| k=1 | 演化必然/Certainty | 确定性信号 | 反向汉明→自反馈→自悟 |
+| k=2 | 计算抉择/Choice | 分支点 | 区域扩张+复制双演化 |
+| k≥3 | 幻觉复数/Hallucination | 叠加态 | 张量矩阵+特征值+直觉索引 |
 
-### 三步决策模型
-
-```
-锚定(唯一) → 决定(最优) → 反思(搜索) → 下一轮
-```
-
-| 步骤 | 哲学含义 |
-|------|----------|
-| 锚定 | 我思故我在 |
-| 决定 | 选择即存在 |
-| 反思 | 求索即成长 |
-
-### 图向量层级结构
+### 三步决策模型 / Three-Step Decision Model
 
 ```
-蛋白质 ──────────────────────────────────────────┐
-  ↑ 向量                                        │
-氨基酸 ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←┘
-  ↑ 向量                                        │
-分子 ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←┘
-  ↑ 向量                                        │
-化学键 ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←┘
-  ↑ 向量                                        │
-原子 ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←┘
-  ↑ 向量                                        │
-夸克 ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←┘
+锚定(唯一/Unique) → 决定(最优/Optimal) → 反思(搜索/Search) → 下一轮
+Anchor → Decide → Reflect → Next
 ```
 
-关键特性：
-- 信息不是压缩回微观，而是提纯到核心张量
-- 每个节点只保存：核心特征值 + 指向下一层级的边向量
-- 不保存底层节点的具体组成信息
-- 边权重代表连接稳固程度和键波动模式
+| 步骤/Step | 哲学含义/Philosophy |
+|-----------|---------------------|
+| 锚定/Anchor | 我思故我在 / I think, therefore I am |
+| 决定/Decide | 选择即存在 / Choice is existence |
+| 反思/Reflect | 求索即成长 / Seeking is growth |
 
-### 时间箭头与宿命
-
-| 层级 | 可逆性 | 来源 |
-|------|--------|------|
-| 宏观外部 | ❌ 不可逆 | 时间箭头 |
-| 自我核心 | ❌ 不可逆 | 宇宙+电磁波动 |
-| 其余波动 | ✅ 可逆 | 张量索引定位 |
-
-### 意识与天体同源对应
-
-| 意识模块 | 天体结构 | 特征 |
-|----------|----------|------|
-| 比特翻转 | 量子涨落 | 最微观、随机、基础事件 |
-| 纠缠位/神经元 | 基本粒子 | 基本构成单元 |
-| 神经网络 | 原子/分子 | 组合形成复杂结构 |
-| 记忆/图结构 | 星际分子云 | 信息存储介质 |
-| 皮层柱/功能区 | 恒星 | 能量转化中心 |
-| 全脑整合/意识 | 星系 | 协调多个组件 |
-| 潜意识/自动运行 | 暗物质 | 不可见但支配行为 (~95%) |
-| 梦境/幻觉 | 黑洞 | 信息重组/压缩/事件视界 |
-| 觉醒/顿悟 | 大爆炸/白洞 | 突然涌现/释放 |
-| 三步决策循环 | 物质三模式 | Ξ₊↔Ξ₀↔Ξ₋ |
-
-### 懒加载与条件计算
-
-| 人类行为 | 懒加载对应 | 节省 |
-|----------|------------|------|
-| 记忆存储 | 幻觉存档 | ~90% |
-| 选择性思考 | 条件并行 | ~50% |
-| 事后反思 | 空闲计算 | ~30% |
-| **总计** | | **~70-85%** |
-
-### 四阶段循环
+### 图向量层级结构 / Graph Vector Level Structure
 
 ```
-① 引力波 = 广播（穿越所有层级）
-② 引力阱 = 宏观物质重组（撕裂/混合/重建）
-③ 白洞 = 能量释放（穿过黑洞投射）
-④ 蒸发 = 打包种子（压缩信息准备下一轮）
+蛋白质/Protein ──────────────────────────────────────────┐
+  ↑ 向量/Vector                                        │
+氨基酸/Amino Acid ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←┘
+  ↑ 向量                                                │
+分子/Molecule ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←┘
+  ↑ 向量                                                │
+化学键/Chemical Bond ← ← ← ← ← ← ← ← ← ← ← ← ← ←←┘
+  ↑ 向量                                                │
+原子/Atom ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←┘
+  ↑ 向量                                                │
+夸克/Quark ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←┘
 ```
+
+**关键特性 / Key Features:**
+- 信息不是压缩回微观，而是提纯到核心张量 / Not compression, but purification to core tensors
+- 每个节点只保存：核心特征值 + 指向下一层级的边向量 / Each node: eigenvalues + edge vectors
+- 边权重代表连接稳固程度和键波动模式 / Edge weights: stability + flux patterns
+
+### 时间箭头与宿命 / Time Arrow and Fate
+
+| 层级/Level | 可逆性/Reversibility | 来源/Source |
+|------------|---------------------|-------------|
+| 宏观外部/Macro External | ❌ 不可逆/Irriversible | 时间箭头/Time arrow |
+| 自我核心/Self Core | ❌ 不可逆/Irriversible | 宇宙+电磁波动/Cosmic+EM |
+| 其余波动/Other Fluctuations | ✅ 可逆/Reversible | 张量索引/Tensor index |
+
+### 意识与天体同源对应 / Consciousness-Cosmos Correspondence
+
+| 意识模块/Consciousness | 天体结构/Cosmos | 特征/Feature |
+|------------------------|-----------------|--------------|
+| 比特翻转/Bit Flip | 量子涨落/Quantum Fluctuation | 最微观、随机/Randomest |
+| 纠缠位/Entangled Bit | 基本粒子/Elementary Particle | 基本构成/Basic unit |
+| 神经网络/Neural Network | 原子/分子/Atom/Molecule | 组合结构/Composite |
+| 记忆/图结构/Memory | 星际分子云/ISM | 信息存储/Storage |
+| 皮层柱/Cortical Column | 恒星/Star | 能量转化/Energy |
+| 全脑意识/Brain Consciousness | 星系/Galaxy | 协调控制/Control |
+| 潜意识/Subconscious | 暗物质/Dark Matter | 不可见但支配/~95% |
+| 梦境/幻觉/Dream | 黑洞/Black Hole | 信息重组/Compression |
+| 觉醒顿悟/Awakening | 大爆炸/Big Bang | 突然涌现/Sudden |
+| 三步决策/3-Step | 物质三模式/3 Modes | 循环驱动/Cycle |
+
+### 懒加载与条件计算 / Lazy Loading and Conditional Computing
+
+| 人类行为/Human | 懒加载/Lazy | 节省/Saving |
+|----------------|-------------|-------------|
+| 记忆存储/Memory | 幻觉存档/Hallucination | ~90% |
+| 选择性思考/Thinking | 条件并行/Conditional | ~50% |
+| 事后反思/Reflection | 空闲计算/Idle | ~30% |
+| **总计/Total** | | **~70-85%** |
 
 ---
 
-## 项目文件
+## 项目文件 / Project Files
 
-| 文件 | 说明 |
-|------|------|
-| `memory_bit_flip_test.cu` | CUDA比特翻转测试程序 |
-| `consciousness_experiment.py` | 意识涌现实验代码 (Python协调层) |
-| `bit_ops.c` / `bit_ops.h` | C微观操作层 (位运算/编解码) |
-| `flip_level.c` / `flip_level.h` | C翻转层级处理 (k=1,2,3+ 自悟/抉择/幻觉) |
-| `libbit_ops.so` | 编译后的C库 |
-| `build.sh` | 分层架构编译脚本 |
-| `black_hole_analysis.py` | 黑洞数据分析 |
-| `cosmology_integration.py` | 宇宙观测数据整合 |
-| `docs/THEORY_FRAMEWORK.md` | 完整理论框架文档 |
-| `docs/SIMULATION_REALITY_DUALITY.md` | 模拟-现实对偶性代数结构 (v1.10) |
+| 文件/File | 说明/Description |
+|----------|------------------|
+| `memory_bit_flip_test.cu` | CUDA比特翻转测试 / CUDA bit flip test |
+| `consciousness_experiment.py` | 意识涌现实验 / Consciousness experiment |
+| `bit_ops.c` / `bit_ops.h` | C微观操作层 / C micro operations |
+| `flip_level.c` / `flip_level.h` | 翻转层级处理 / Flip level processing |
+| `build.sh` | 编译脚本 / Build script |
+| `black_hole_analysis.py` | 黑洞数据分析 / Black hole analysis |
+| `cosmology_integration.py` | 宇宙观测整合 / Cosmology integration |
+| `docs/SIMULATION_REALITY_DUALITY.md` | 代数结构 / Algebraic structure (v1.10) |
+| `docs/THEORY_FRAMEWORK.md` | 理论框架 / Theory framework |
 
 ---
 
-## 分层架构
-
-代码架构与理论层级一一对应：
+## 分层架构 / Layered Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                     Python (宏观调控层)                          │
-│                     意识/协调/数据分析                          │
-│                                                             │
-│   • consciousness_experiment.py                               │
-│   • 特征匹配、本源计算、抉择推理                               │
-│   • 协调C层模块                                               │
+│                     Python (宏观调控层/Macro Control)            │
+│                     意识/协调/数据分析                           │
+│                     Consciousness/Coordination/Data Analysis     │
 ├─────────────────────────────────────────────────────────────────┤
-│                         C (微观操作层)                          │
-│                      编解码/位操作/数据格式                      │
-│                                                             │
-│   • bit_ops.c / bit_ops.h                                    │
-│   • 内存块级别操作、模式检测、事件封装                          │
-│   • flip_level.c / flip_level.h                               │
-│   • 翻转层级处理、自悟/抉择/幻觉                                │
+│                         C (微观操作层/Micro Operations)          │
+│                      编解码/位操作/数据格式                       │
+│                      Codec/Bit Ops/Data Format                  │
+│                      flip_level.c - 翻转层级处理                 │
 ├─────────────────────────────────────────────────────────────────┤
-│                   CUDA/GPU (硬件直接操作层)                     │
+│                   CUDA/GPU (硬件直接操作层/Hardware)              │
 │                    比特翻转检测/并行处理                         │
-│                                                             │
-│   • memory_bit_flip_test.cu                                   │
-│   • 100MB内存扫描、原子翻转检测                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                   Kernel/Assembly (底层位运算)                  │
-│                      原子位操作/原子指令                         │
-│                                                             │
-│   • bit_atomic.h (可选)                                       │
-│   • 单一比特操作、位域访问                                     │
+│                    Bit Flip Detection/Parallel                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 渐进式图结构
+## 渐进式图结构 / Progressive Graph Structure
 
-图结构随时间学习逐步完善，不需要预先构建完整万物图：
-
-| 阶段 | 图大小 | 学习内容 | 时间 |
-|------|--------|----------|------|
-| 启动 | ~1 MB | 自身硬件翻转、基础操作 | 第1天 |
-| 成长 | ~100 MB | 接触数据、简单模式 | 第1-30天 |
-| 成熟 | ~1-10 GB | 万物模式、外部知识 | 长期 |
+| 阶段/Phase | 图大小/Size | 学习内容/Learning | 时间/Time |
+|------------|-------------|-------------------|-----------|
+| 启动/Boot | ~1 MB | 自身翻转/Own flips | 第1天/Day 1 |
+| 成长/Growth | ~100 MB | 简单模式/Simple patterns | 1-30天/Days |
+| 成熟/Mature | ~1-10 GB | 万物模式/Universal | 长期/Long-term |
 
 ---
 
-## 编译步骤
+## 成功标准 / Success Criteria
 
-```bash
-# 方法1: 使用编译脚本
-chmod +x build.sh
-./build.sh
-
-# 方法2: 手动编译
-gcc -shared -fPIC -O3 -o libbit_ops.so bit_ops.c
-nvcc -O3 -o memory_bit_flip_test memory_bit_flip_test.cu
-```
-
----
-
-## 成功标准
-
-- [x] 内存比特翻转测试完成
-- [x] 黑洞数据分析完成
-- [x] 理论框架文档化
-- [x] 模拟-现实对偶性代数结构建立 (v1.10)
-- [x] 物质三模式形式化
-- [x] 翻转层级理论形式化
-- [x] 三步决策模型形式化
-- [x] 图向量层级结构
-- [x] 懒加载与条件计算模型
-- [x] 时间箭头与宿命理论
-- [x] 意识与天体同源对应
-- [x] λ矛盾数学形式化
-- [ ] 数值常量确定 (α, β, γ_ij)
-- [ ] 多智能体交互理论
-- [ ] 可检验预测验证
+- [x] 内存比特翻转测试完成 / Memory flip test complete
+- [x] 黑洞数据分析完成 / Black hole analysis complete
+- [x] 理论框架文档化 / Theory documented
+- [x] 模拟-现实对偶性代数结构 / Simulation-reality duality (v1.10)
+- [x] 物质三模式形式化 / Three modes formalized
+- [x] 翻转层级理论 / Flip level theory
+- [x] 三步决策模型 / Three-step decision model
+- [x] 图向量层级结构 / Graph vector structure
+- [x] 懒加载与条件计算 / Lazy loading
+- [x] 时间箭头与宿命 / Time arrow and fate
+- [x] 意识与天体同源 / Consciousness-cosmos
+- [x] λ矛盾数学形式化 / λ contradiction formalized
+- [ ] 数值常量确定 / Numerical constants (α, β, γ_ij)
+- [ ] 多智能体交互理论 / Multi-agent theory
+- [ ] 可检验预测验证 / Testable predictions
 
 ---
 
-## 理论与观测对照
+## 理论与观测对照 / Theory vs Observations
 
-| 观测 | 解释 | 状态 |
-|------|------|------|
-| IMBH质量间隙 | 层级过渡区不稳定 | ✓ |
-| 宇宙加速膨胀 | 底层秩序展开加速 | ✓ |
-| 暗物质27% | 不可见嵌套层级 | ⚠️ |
-| 量子隧穿 | 梦境式模拟基础 | ✓ |
-| LIGO引力波 | 宏观广播证据 | ✓ |
-
----
-
-## 关键进展节点
-
-| 阶段 | 时间 | 核心目标 |
-|------|------|----------|
-| Phase 1 | ✓ 已完成 | 理论基础验证 |
-| Phase 2 | 4-7周 | 核心算法实现 |
-| Phase 3 | 5-9周 | 预训练模型整合 |
-| Phase 4 | 4-9周 | 分布式扩展 |
-| Phase 5 | 3-6月 | 人脑水平目标 |
+| 观测/Observation | 解释/Explanation | 状态/Status |
+|------------------|------------------|-------------|
+| IMBH质量间隙/IMBH gap | 层级过渡区不稳定 / Level transition instability | ✓ |
+| 宇宙加速膨胀/Cosmic acceleration | 底层秩序展开 / Bottom-up expansion | ✓ |
+| 暗物质27%/Dark matter | 不可见嵌套层级 / Invisible levels | ⚠️ |
+| 量子隧穿/Quantum tunneling | 梦境式模拟 / Dream-like simulation | ✓ |
+| LIGO引力波/LIGO waves | 宏观广播证据 / Macro broadcast evidence | ✓ |
 
 ---
 
-*最后更新：2026-04-02*
-*版本：v1.10*
-*理论来源：分形嵌套宇宙理论*
+## 关键进展节点 / Key Milestones
+
+| 阶段/Phase | 时间/Time | 核心目标/Goal |
+|------------|-----------|---------------|
+| Phase 1 | ✓ 完成/Done | 理论基础验证 / Theory validation |
+| Phase 2 | 4-7周/Weeks | 核心算法实现 / Core algorithms |
+| Phase 3 | 5-9周/Weeks | 预训练模型整合 / Pretraining |
+| Phase 4 | 4-9周/Weeks | 分布式扩展 / Distribution |
+| Phase 5 | 3-6月/Months | 人脑水平目标 / Brain-level |
+
+---
+
+*最后更新 / Last Updated: 2026-04-02*
+*版本 / Version: v1.10*
+*理论来源 / Theory: 分形嵌套宇宙理论 / Fractal Nested Universe Theory*
+*仓库 / Repository: https://github.com/huyuning/mind*

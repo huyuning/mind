@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ========================================================
-确定性验证测试
+全连接图主线确定性验证
 ========================================================
 
 同一初始态运行100次，验证是否100%进入同一吸引子
@@ -13,20 +13,16 @@ from datetime import datetime
 class DeterminismTest:
     def __init__(self):
         self.graphs = {
-            '完全图': {i: [j for j in range(7) if j != i] for i in range(7)},
-            '汉明码': {
-                0: [1], 1: [0, 3, 6], 2: [0, 5, 6], 3: [1, 4],
-                4: [3, 5], 5: [2, 4], 6: [1, 2],
-            },
-            '环形': {
+            '全连接图主线': {i: [j for j in range(7) if j != i] for i in range(7)},
+            '对照-环形': {
                 0: [1, 6], 1: [0, 2], 2: [1, 3], 3: [2, 4],
                 4: [3, 5], 5: [4, 6], 6: [5, 0],
             },
-            '星形': {
+            '对照-星形': {
                 0: [1, 2, 3, 4, 5, 6],
                 1: [0], 2: [0], 3: [0], 4: [0], 5: [0], 6: [0],
             },
-            '链形': {
+            '对照-链形': {
                 0: [1], 1: [0, 2], 2: [1, 3], 3: [2, 4],
                 4: [3, 5], 5: [4, 6], 6: [5],
             },
@@ -98,7 +94,7 @@ class DeterminismTest:
 
     def run(self):
         print("=" * 70)
-        print("  确定性验证：同一初始态运行100次")
+        print("  全连接图主线确定性验证：同一初始态运行100次")
         print("=" * 70)
 
         results = {}
@@ -114,13 +110,13 @@ class DeterminismTest:
             print(f"  确定性: {'✓ 100%一致' if r['deterministic'] else '✗ 不一致!'}")
 
         print(f"\n{'='*70}")
-        print("  汇总")
+        print("  全连接图主线汇总")
         print(f"{'='*70}")
-        print(f"\n{'结构':<10} {'唯一吸引子':<15} {'确定性':<15}")
+        print(f"\n{'图组':<18} {'唯一吸引子':<15} {'确定性':<15}")
         print("-" * 40)
         for name, r in results.items():
             det = "✓ 100%" if r['deterministic'] else "✗ 不一致"
-            print(f"{name:<10} {r['unique_attractors']:<15} {det:<15}")
+            print(f"{name:<18} {r['unique_attractors']:<15} {det:<15}")
 
         print(f"\n结论: 这是{'确定性' if all(r['deterministic'] for r in results.values()) else '非确定性'}动力学系统")
 

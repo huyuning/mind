@@ -1,0 +1,79 @@
+{
+  "engine_name": "CSDE",
+  "schema_name": "csde_metric_schema",
+  "version": "1.0.0",
+  "metrics": [
+    {
+      "name": "axis_node_count_total",
+      "objective": "max",
+      "unit": "count",
+      "description": "扫描个例最终累计生成的轴节点总数，用于衡量闭合相持久化后的总体结构容量。"
+    },
+    {
+      "name": "axis_node_count_active",
+      "objective": "max",
+      "unit": "count",
+      "description": "扫描个例结束时仍处于活跃状态的轴节点数量，用于衡量多轴并存强度。"
+    },
+    {
+      "name": "max_level",
+      "objective": "max",
+      "unit": "level",
+      "description": "扫描个例最终达到的最高共轴递归层级，用于衡量层级展开深度。"
+    },
+    {
+      "name": "latest_mass_total_proxy",
+      "objective": "max",
+      "unit": "arb.",
+      "description": "扫描个例结束时的总质量代理，近似表示轴谱保留量和总结构惯性的综合规模。"
+    },
+    {
+      "name": "latest_mass_parallel_proxy",
+      "objective": "min",
+      "unit": "arb.",
+      "description": "扫描个例结束时沿主共轴方向的质量代理，值越小代表主轴方向越轻、越易被驱动。"
+    },
+    {
+      "name": "latest_absorbed_axis_proxy",
+      "objective": "max",
+      "unit": "arb.",
+      "description": "扫描个例结束时的吸收轴代理，近似表示系统保留的可持续轴通道容量。"
+    },
+    {
+      "name": "coaxial_depth_score",
+      "objective": "max",
+      "unit": "score",
+      "description": "结合活跃轴节点数与最大层级的综合分值，用于快速筛选多轴递归最明显的实验窗口。"
+    },
+    {
+      "name": "dominant_frequency_std",
+      "objective": "min",
+      "unit": "hz_proxy",
+      "description": "主导共振频率在时间序列上的标准差，值越小说明共振频率越稳定。",
+      "default_thresholds": {
+        "warning_upper": 0.03,
+        "critical_upper": 0.08
+      },
+      "alert_rule": {
+        "mode": "upper_bound",
+        "warning_when": "value > warning_upper",
+        "critical_when": "value > critical_upper"
+      }
+    },
+    {
+      "name": "resonance_frequency_stability_score",
+      "objective": "max",
+      "unit": "score",
+      "description": "基于主导频率波动、锁相持续时间和频带偏差定义的稳定性分数，值越大说明共振频率越稳定。",
+      "default_thresholds": {
+        "warning_lower": 0.80,
+        "critical_lower": 0.60
+      },
+      "alert_rule": {
+        "mode": "lower_bound",
+        "warning_when": "value < warning_lower",
+        "critical_when": "value < critical_lower"
+      }
+    }
+  ]
+}

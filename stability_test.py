@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ========================================================
-全面稳定性测试
+全连接图主线全面稳定性测试
 ========================================================
 
 1. 抗噪声测试：加入随机噪声后看恢复能力
@@ -17,20 +17,16 @@ import time
 class StabilityTest:
     def __init__(self):
         self.graphs = {
-            '完全图': {i: [j for j in range(7) if j != i] for i in range(7)},
-            '汉明码': {
-                0: [1], 1: [0, 3, 6], 2: [0, 5, 6], 3: [1, 4],
-                4: [3, 5], 5: [2, 4], 6: [1, 2],
-            },
-            '环形': {
+            '全连接图主线': {i: [j for j in range(7) if j != i] for i in range(7)},
+            '对照-环形': {
                 0: [1, 6], 1: [0, 2], 2: [1, 3], 3: [2, 4],
                 4: [3, 5], 5: [4, 6], 6: [5, 0],
             },
-            '星形': {
+            '对照-星形': {
                 0: [1, 2, 3, 4, 5, 6],
                 1: [0], 2: [0], 3: [0], 4: [0], 5: [0], 6: [0],
             },
-            '链形': {
+            '对照-链形': {
                 0: [1], 1: [0, 2], 2: [1, 3], 3: [2, 4],
                 4: [3, 5], 5: [4, 6], 6: [5],
             },
@@ -204,7 +200,7 @@ class StabilityTest:
 
     def run(self):
         print("=" * 70)
-        print("  全面稳定性测试")
+        print("  全连接图主线全面稳定性测试")
         print("=" * 70)
         print(f"开始时间: {datetime.now()}")
 
@@ -226,17 +222,17 @@ class StabilityTest:
 
         # 汇总
         print(f"\n{'='*70}")
-        print("  汇总对比")
+        print("  全连接图主线汇总")
         print(f"{'='*70}")
 
-        print(f"\n{'结构':<10} {'抗噪1位':<12} {'节点故障':<12} {'吸引子稳定性':<15} {'迭代速度':<10}")
+        print(f"\n{'图组':<18} {'抗噪1位':<12} {'节点故障':<12} {'吸引子稳定性':<15} {'迭代速度':<10}")
         print("-" * 60)
         for name, r in all_results.items():
             noise_rate = r['noise'][1]['same']
             node_rate = r['node_failure'][1]['recovered']
             pert_rate = r['perturbation'][1]
             speed = r['10min']['states_per_second']
-            print(f"{name:<10} {noise_rate:<12.0f} {node_rate:<12.0f} {pert_rate:<15.1f} {speed:<10.0f}")
+            print(f"{name:<18} {noise_rate:<12.0f} {node_rate:<12.0f} {pert_rate:<15.1f} {speed:<10.0f}")
 
         print(f"\n完成时间: {datetime.now()}")
         return all_results

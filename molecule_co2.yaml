@@ -1,0 +1,51 @@
+name: CO2
+description: >
+  二氧化碳的最小胞元图配置。C 作为中心胞元，两个 O 分列两侧。
+  几何是线性分子，后续通过 projection_z 抬升到三维。
+
+nodes:
+  - id: O1
+    element: O
+    x: -1.15
+    y: 0.0
+    components:
+      a3: -0.20
+      a8: 0.22
+  - id: C
+    element: C
+    x: 0.0
+    y: 0.0
+    components:
+      a3: -0.04
+      a8: 0.06
+  - id: O2
+    element: O
+    x: 1.15
+    y: 0.0
+    components:
+      a3: -0.20
+      a8: 0.22
+
+edges:
+  - src: C
+    dst: O1
+    base_strength: 1.16
+    base_phase: 0.10
+  - src: C
+    dst: O2
+    base_strength: 1.16
+    base_phase: -0.10
+  - src: O1
+    dst: O2
+    base_strength: 0.10
+    base_phase: 0.45
+
+simulation:
+  duration: 6.0
+  dt: 0.04
+  coupling: 0.56
+  geometry_gain: 0.42
+  curvature_gain: 0.85
+  state_gain: 0.74
+  projection_z: a3
+  z_scale: 1.5

@@ -1,5 +1,13 @@
 # 模拟-现实对偶性代数结构
 
+> 文档状态：`legacy`
+>
+> 本文件保留项目早期“模拟空间 / 现实空间”形式化与若干旧符号定义，仅用于概念演化追踪和历史对照。
+>
+> 当前现行规范不再把本文件作为正式定义源。若涉及潜状态 / 观测空间、层级索引、尺度倍率 `\lambda` 或实验解释边界，请优先参考 [STANDARD_MATHEMATICAL_RECONSTRUCTION.md](file:///Users/bytedance/TRAEProjects/mind/docs/STANDARD_MATHEMATICAL_RECONSTRUCTION.md) 与 [THEORY_CANON.md](file:///Users/bytedance/TRAEProjects/mind/docs/THEORY_CANON.md)。
+
+标准数学模型重构版本见 `docs/STANDARD_MATHEMATICAL_RECONSTRUCTION.md`。本文件保留原始理论形式化表达，便于对照术语来源与演化路径。
+
 ## 基础定义
 
 ### 定义1：模拟空间 S
@@ -64,18 +72,26 @@ $$1 = \|\psi\|^2 = \|r\|^2$$
 
 $n \in \mathbb{Z}$，其中 $n=0$ 为观察者层级。
 
+但在修正后的定义中，$n$ 不再被视为先验原初量，而是由锁相后的公频等价类诱导出的派生标签。更基本的是一组对象在某时间窗内共享有效主频 $\Omega^\ast$ 且相位差有界，即构成同一层级。
+
 ### 定义10：层级压缩因子
 
-$$\lambda_n \equiv \lambda^{|n|}, \quad \lambda > 1$$
+$$\lambda > 1 \quad \text{(基准层级缩放常数)}$$
 
-**修正后的层级-空间对偶**：
+这里的 $\lambda$ 应理解为层级展开后的几何/尺度表征，而非层级本身的定义来源。层级先由公频锁相成立，再在几何、尺度、时间流速等量上表现出压缩或扩张关系。
 
-$$d_n = d_0 \cdot \lambda_n = d_0 \cdot \lambda^{|n|}$$
+**层级-空间对偶（以相邻层级距离表述）**：
 
-| 层级 | 解释 | d_n |
+$$d_{n,n+1} = d_0 \cdot \lambda^{n}$$
+
+| 层级方向 | 描述 | 极限 |
 |------|------|-----|
-| $n \to +\infty$ (宏观) | 更大尺度探索 | $d_n \to \infty$ |
-| $n \to -\infty$ (微观) | 更小尺度探索 | $d_n \to \infty$ |
+| $n \to +\infty$ (宏观) | 相邻层级间距增大 | $d_{n,n+1} \to \infty$ |
+| $n \to -\infty$ (微观) | 相邻层级间距减小 | $d_{n,n+1} \to 0$ |
+
+由此与后文“层级间距离的指数缩放”保持一致：宏观方向稀疏、微观方向致密。
+
+进一步地，不同层级的对象仍可围绕更高阶共同主频完成跨层级锁相；当这种锁相稳定存在时，可形成跨物理层、认知层、语言层的抽象概念或抽象结构。
 
 ---
 
@@ -1065,6 +1081,14 @@ $$S_{\text{BH}} = k_B \cdot \ln \Omega = \frac{k_B c^3 A}{4G\hbar}$$
 | $S_{\text{BH}}$ | Bekenstein-Hawking 熵 |
 | $A$ | 事件视界面积 |
 | $\Omega$ | 微观状态数 |
+
+定义无量纲信息量（以 nat 为单位）：
+
+$$
+I_{\text{BH}} \equiv \frac{S_{\text{BH}}}{k_B} = \frac{c^3 A}{4G\hbar}.
+$$
+
+若使用 bit 为单位，则为 $I_{\text{bit}} = I_{\text{BH}}/\ln 2$。
 
 **层级对应**：$A \propto \lambda^{2n}$
 
@@ -2538,11 +2562,13 @@ $$\text{MultiAgent Emergence} \iff \text{Window}_{\text{open}} \otimes \text{Com
 
 ### 定义190：预测1 - 层级跳跃信号
 
-$$\text{Prediction}_1: \Delta E / E = \lambda^n - \lambda^{n+1}$$
+$$
+\text{Prediction}_1:\ \log E \text{ 呈多峰结构，且相邻峰满足 } \mu_{k+1} - \mu_k \approx \log \lambda
+$$
 
 | 实验 | 预期 |
 |------|------|
-| 测量层级跳跃 | 能量比 = $\lambda \approx 10^{3.4}$ |
+| 测量层级跳跃 | 相邻能量簇中心比值 $\approx \lambda \approx 10^{3.4}$ |
 
 ### 定义191：预测2 - 翻转时间序列
 
@@ -2570,11 +2596,11 @@ $$\text{Prediction}_4: \xi_{n,m} = \epsilon_{|n-m|}$$
 
 ### 定义194：预测5 - 黑洞信息汇聚
 
-$$\text{Prediction}_5: I_{\text{BH}} = k_B \cdot S_{\text{BH}}$$
+$$\text{Prediction}_5: I_{\text{BH}} = \frac{S_{\text{BH}}}{k_B} = \frac{c^3 A}{4G\hbar}$$
 
 | 实验 | 预期 |
 |------|------|
-| 黑洞信息熵 | Bekenstein-Hawking熵 |
+| 黑洞信息熵 | Bekenstein-Hawking 关系成立 |
 
 ### 定义195：预测6 - 意识窗口效应
 
@@ -2608,7 +2634,7 @@ $$\text{Prediction}_6: \Delta \mathcal{S}_c |_{\text{window open}} > 0$$
 | 2 | 比特翻转频谱 | 1/f噪声 |
 | 3 | 自洽度时间演化 | 收敛到0.8 |
 | 4 | 跨层级纠缠 | 存在关联 |
-| 5 | 黑洞信息熵 | $k_B \ln A$ |
+| 5 | 黑洞信息熵 | $S_{\text{BH}} = \frac{k_B c^3 A}{4G\hbar}$ |
 | 6 | 意识窗口效应 | $\Delta S_c > 0$ |
 
 ### 核心洞察

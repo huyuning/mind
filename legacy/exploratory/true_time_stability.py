@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ========================================================
-真正的时间稳定性测试
+全连接图主线时间稳定性测试
 ========================================================
 
 同一初始态，每隔1分钟检查一次，共10次
@@ -14,12 +14,8 @@ from datetime import datetime
 class TrueTimeStability:
     def __init__(self):
         self.graphs = {
-            '完全图': {i: [j for j in range(7) if j != i] for i in range(7)},
-            '汉明码': {
-                0: [1], 1: [0, 3, 6], 2: [0, 5, 6], 3: [1, 4],
-                4: [3, 5], 5: [2, 4], 6: [1, 2],
-            },
-            '环形': {
+            '全连接图主线': {i: [j for j in range(7) if j != i] for i in range(7)},
+            '对照-环形': {
                 0: [1, 6], 1: [0, 2], 2: [1, 3], 3: [2, 4],
                 4: [3, 5], 5: [4, 6], 6: [5, 0],
             },
@@ -74,7 +70,7 @@ class TrueTimeStability:
 
     def run(self):
         print("=" * 70)
-        print("  时间稳定性测试")
+        print("  全连接图主线时间稳定性测试")
         print("=" * 70)
         print(f"开始时间: {datetime.now()}")
 
@@ -124,7 +120,7 @@ class TrueTimeStability:
             }
 
         print(f"\n{'='*70}")
-        print("  结论")
+        print("  全连接图主线结论")
         print(f"{'='*70}")
         for name, r in results.items():
             same = r['initial_attractor']['cycle_states'] == r['final_attractor']['cycle_states']

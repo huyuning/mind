@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ========================================================
-扫频频率变化测试
+全连接图主线扫频频率变化测试
 ========================================================
 
 测试不同扫频频率对系统动力学的影响：
@@ -18,12 +18,8 @@ from datetime import datetime
 class FrequencyVariationTest:
     def __init__(self):
         self.graphs = {
-            '完全图': {i: [j for j in range(7) if j != i] for i in range(7)},
-            '汉明码': {
-                0: [1], 1: [0, 3, 6], 2: [0, 5, 6], 3: [1, 4],
-                4: [3, 5], 5: [2, 4], 6: [1, 2],
-            },
-            '环形': {
+            '全连接图主线': {i: [j for j in range(7) if j != i] for i in range(7)},
+            '对照-环形': {
                 0: [1, 6], 1: [0, 2], 2: [1, 3], 3: [2, 4],
                 4: [3, 5], 5: [4, 6], 6: [5, 0],
             },
@@ -95,7 +91,7 @@ class FrequencyVariationTest:
 
     def run(self):
         print("=" * 70)
-        print("  扫频频率变化测试")
+        print("  全连接图主线扫频频率变化测试")
         print("=" * 70)
 
         # 不同的频率策略
@@ -132,7 +128,7 @@ class FrequencyVariationTest:
 
         # 汇总表格
         print(f"\n{'='*70}")
-        print("  频率策略对比汇总")
+        print("  全连接图主线频率策略汇总")
         print(f"{'='*70}")
         print(f"\n{'频率策略':<20} ", end="")
         for name in self.graphs.keys():
@@ -149,7 +145,7 @@ class FrequencyVariationTest:
 
         # 循环长度分布
         print(f"\n{'='*70}")
-        print("  各频率策略的循环长度分布")
+        print("  全连接图主线各频率策略循环长度分布")
         print(f"{'='*70}")
 
         for name, entanglement in self.graphs.items():

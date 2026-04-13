@@ -1,0 +1,5 @@
+numpy>=1.24
+torch>=2.0
+PySide6>=6.11
+pygfx>=0.16
+rendercanvas>=2.6

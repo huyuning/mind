@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 """
 ========================================================
-测试多种图结构的动力学行为
+全连接图主线与对照图动力学测试
 ========================================================
 
-测试7种不同的图结构：
-1. 汉明码结构
-2. 完全图
-3. 环形
-4. 星形（中心辐射）
-5. 二分图
-6. 链形
-7. 网格(2x3)
+测试 1 条全连接图主线和 5 组对照图：
+1. 全连接图主线
+2. 对照-环形
+3. 对照-星形（中心辐射）
+4. 对照-二分图
+5. 对照-链形
+6. 对照-网格(2x3)
 """
 
 import numpy as np
@@ -19,17 +18,8 @@ import numpy as np
 class MultiGraphTest:
     def __init__(self):
         self.graphs = {
-            '汉明码': {
-                0: [1],
-                1: [0, 3, 6],
-                2: [0, 5, 6],
-                3: [1, 4],
-                4: [3, 5],
-                5: [2, 4],
-                6: [1, 2],
-            },
-            '完全图': {i: [j for j in range(7) if j != i] for i in range(7)},
-            '环形': {
+            '全连接图主线': {i: [j for j in range(7) if j != i] for i in range(7)},
+            '对照-环形': {
                 0: [1, 6],
                 1: [0, 2],
                 2: [1, 3],
@@ -38,7 +28,7 @@ class MultiGraphTest:
                 5: [4, 6],
                 6: [5, 0],
             },
-            '星形': {
+            '对照-星形': {
                 0: [1, 2, 3, 4, 5, 6],
                 1: [0],
                 2: [0],
@@ -47,7 +37,7 @@ class MultiGraphTest:
                 5: [0],
                 6: [0],
             },
-            '二分图': {
+            '对照-二分图': {
                 0: [1, 2, 3],
                 1: [0, 4, 5],
                 2: [0, 4, 6],
@@ -56,7 +46,7 @@ class MultiGraphTest:
                 5: [1, 3],
                 6: [2, 3],
             },
-            '链形': {
+            '对照-链形': {
                 0: [1],
                 1: [0, 2],
                 2: [1, 3],
@@ -65,7 +55,7 @@ class MultiGraphTest:
                 5: [4, 6],
                 6: [5],
             },
-            '网格(2x3)': {
+            '对照-网格(2x3)': {
                 0: [1, 3],
                 1: [0, 2, 4],
                 2: [1, 5],
@@ -77,7 +67,7 @@ class MultiGraphTest:
         }
 
         print("=" * 70)
-        print("  多种图结构动力学测试")
+        print("  全连接图主线与对照图动力学测试")
         print("=" * 70)
 
         for name, g in self.graphs.items():
@@ -154,7 +144,7 @@ class MultiGraphTest:
         results = {}
 
         print("\n" + "=" * 70)
-        print("  测试结果")
+        print("  全连接图主线与对照测试结果")
         print("=" * 70)
 
         for name, entanglement in self.graphs.items():
@@ -176,15 +166,15 @@ class MultiGraphTest:
 
             results[name] = r
 
-        # 汇总对比
+        # 全连接图主线汇总
         print("\n" + "=" * 70)
-        print("  汇总对比")
+        print("  全连接图主线汇总")
         print("=" * 70)
-        print(f"{'结构':<10} {'丢失率':<10} {'保留率':<10} {'循环长度':<15}")
+        print(f"{'图组':<18} {'丢失率':<10} {'保留率':<10} {'循环长度':<15}")
         print("-" * 50)
         for name, r in results.items():
             main_loop_len = max(r['loop_len_counts'].keys(), key=lambda x: r['loop_len_counts'][x])
-            print(f"{name:<10} {r['lost_rate']:<10.1f} {r['kept_rate']:<10.1f} {main_loop_len}({r['loop_len_counts'][main_loop_len]}次)")
+            print(f"{name:<18} {r['lost_rate']:<10.1f} {r['kept_rate']:<10.1f} {main_loop_len}({r['loop_len_counts'][main_loop_len]}次)")
 
         return results
 

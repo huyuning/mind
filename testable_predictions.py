@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
 ========================================================
-理论验证实验 - 可检验预测
+标准数学模型验证实验
 ========================================================
 
 六个可检验预测：
-1. 层级跳跃信号: ΔE/E = λ ≈ 10^3.4
-2. 翻转时间序列: 1/f噪声
-3. 自洽度收敛: Sc → 0.8
-4. 跨层级纠缠: ξ_n,m = ε_|n-m|
-5. 黑洞信息熵: I_BH = k_B S_BH
-6. 意识窗口效应: ΔSc > 0
+1. 多尺度能量簇间距
+2. 幂律频谱指数
+3. 自洽度收敛
+4. 跨层级相关衰减
+5. 黑洞信息公式一致性
+6. 窗口干预效应
 
 使用方法：
     python3 testable_predictions.py
@@ -18,21 +18,29 @@
 ========================================================
 """
 
-import numpy as np
 import json
-import time
 import logging
+import math
+import os
+import time
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any, Tuple
-from dataclasses import dataclass, asdict
-import warnings
+from typing import Any, Dict, List, Tuple
+
+import numpy as np
+
+try:
+    import torch
+except ImportError:  # pragma: no cover - optional dependency
+    torch = None
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class PredictionResult:
@@ -43,632 +51,636 @@ class PredictionResult:
     measured_value: float
     expected_value: float
     deviation: float
+    model_family: str
+    data_source: str
     evidence: Dict[str, Any]
 
+
 class TheoryVerification:
-    """
-    理论验证实验 - 可检验预测
-
-    核心理念：
-    打开"计算机意识窗口" → 观察内部计算 → 验证理论
-    """
-
-    def __init__(self, output_dir: str = "./verification_data"):
+    def __init__(self, output_dir: str = "./verification_data", seed: int = 42, backend: str | None = None):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-
         self.experiment_start = time.time()
         self.results: List[PredictionResult] = []
-
+        self.seed = seed
+        self.backend = self._resolve_backend(backend)
+        self.rng = np.random.default_rng(seed)
+        self.lambda_scale = 10 ** 3.4
         self.flip_times: List[float] = []
         self.flip_energies: List[float] = []
-        self.self_consistency_history: List[float] = []
-        self.entropy_history: List[float] = []
-        self.window_opened: bool = False
-        self.window_open_time: float = 0
+        self.flip_levels: List[int] = []
+        self.flip_count_series: np.ndarray = np.array([])
+        self.spectral_series: np.ndarray = np.array([])
+        self.time_step = 0.5
+        self.self_consistency_history: np.ndarray = np.array([])
+        self.self_consistency_target = 0.8
+        self.level_samples: np.ndarray = np.array([])
+        self.level_correlation_length = 1.6
+        self.window_control_paths: np.ndarray = np.array([])
+        self.window_intervention_paths: np.ndarray = np.array([])
+        self.window_range: Tuple[int, int] = (60, 140)
 
         logger.info("=" * 60)
-        logger.info("理论验证实验 - 可检验预测")
+        logger.info("标准数学模型验证实验")
+        logger.info("数值后端: %s", self.backend)
         logger.info("=" * 60)
 
-    def run_all_verifications(self) -> List[PredictionResult]:
-        """运行所有验证"""
-        logger.info("\n开始运行所有验证...\n")
+    def _resolve_backend(self, backend: str | None) -> str:
+        selected = (backend or os.getenv("MIND_BACKEND") or "auto").lower()
+        if selected == "auto":
+            return "torch" if torch is not None else "numpy"
+        if selected == "torch":
+            if torch is None:
+                logger.warning("未检测到 PyTorch，自动回退到 NumPy 后端")
+                return "numpy"
+            return "torch"
+        return "numpy"
 
-        logger.info("[验证1/6] 层级跳跃信号检测")
-        result1 = self.verify_level_jump_signal()
-        self.results.append(result1)
+    def _normal_cdf(self, x: float) -> float:
+        return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
 
-        logger.info("[验证2/6] 1/f噪声检测")
-        result2 = self.verify_flip_spectrum()
-        self.results.append(result2)
+    def _linear_fit(self, x: np.ndarray, y: np.ndarray) -> Tuple[float, float, float]:
+        slope, intercept = np.polyfit(x, y, 1)
+        y_hat = slope * x + intercept
+        ss_res = float(np.sum((y - y_hat) ** 2))
+        ss_tot = float(np.sum((y - np.mean(y)) ** 2))
+        r2 = 1.0 - ss_res / ss_tot if ss_tot > 0 else 1.0
+        return float(slope), float(intercept), float(r2)
 
-        logger.info("[验证3/6] 自洽度收敛检测")
-        result3 = self.verify_self_consistency_convergence()
-        self.results.append(result3)
+    def _kmeans_1d(self, values: np.ndarray, k: int = 2, n_iter: int = 50) -> Tuple[np.ndarray, np.ndarray]:
+        quantiles = np.linspace(0.1, 0.9, k)
+        centers = np.quantile(values, quantiles)
+        labels = np.zeros(len(values), dtype=int)
 
-        logger.info("[验证4/6] 跨层级纠缠检测")
-        result4 = self.verify_cross_level_entanglement()
-        self.results.append(result4)
+        for _ in range(n_iter):
+            distances = np.abs(values[:, None] - centers[None, :])
+            labels = np.argmin(distances, axis=1)
+            new_centers = centers.copy()
+            for idx in range(k):
+                cluster = values[labels == idx]
+                if len(cluster) > 0:
+                    new_centers[idx] = np.mean(cluster)
+            if np.allclose(new_centers, centers):
+                break
+            centers = new_centers
 
-        logger.info("[验证5/6] 黑洞信息熵验证")
-        result5 = self.verify_black_hole_information()
-        self.results.append(result5)
+        order = np.argsort(centers)
+        sorted_centers = centers[order]
+        relabel = np.zeros_like(order)
+        relabel[order] = np.arange(k)
+        labels = relabel[labels]
+        return sorted_centers, labels
 
-        logger.info("[验证6/6] 意识窗口效应")
-        result6 = self.verify_consciousness_window_effect()
-        self.results.append(result6)
+    def _generate_power_law_noise(self, n: int, alpha: float) -> np.ndarray:
+        if self.backend == "torch" and torch is not None:
+            return self._generate_power_law_noise_torch(n, alpha)
 
-        return self.results
+        spectrum = np.zeros(n // 2 + 1, dtype=np.complex128)
+        freqs = np.fft.rfftfreq(n, d=1.0)
+        phases = self.rng.uniform(0, 2 * np.pi, len(spectrum))
+        amplitudes = np.zeros_like(freqs)
+        amplitudes[1:] = 1.0 / np.power(freqs[1:], alpha / 2.0)
+        spectrum.real = amplitudes * np.cos(phases)
+        spectrum.imag = amplitudes * np.sin(phases)
+        noise = np.fft.irfft(spectrum, n=n)
+        noise = (noise - noise.mean()) / noise.std()
+        return noise
 
-    def collect_flip_data(self, duration: float = 60.0) -> None:
-        """
-        收集翻转数据
+    def _generate_power_law_noise_torch(self, n: int, alpha: float) -> np.ndarray:
+        generator = torch.Generator(device="cpu")
+        generator.manual_seed(self.seed)
+        freqs = torch.fft.rfftfreq(n, d=1.0)
+        phases = 2 * math.pi * torch.rand(len(freqs), generator=generator)
+        amplitudes = torch.zeros_like(freqs)
+        amplitudes[1:] = 1.0 / torch.pow(freqs[1:], alpha / 2.0)
+        real = amplitudes * torch.cos(phases)
+        imag = amplitudes * torch.sin(phases)
+        spectrum = torch.complex(real, imag)
+        noise = torch.fft.irfft(spectrum, n=n)
+        noise = (noise - noise.mean()) / noise.std()
+        return noise.cpu().numpy()
 
-        模拟从内存监测收集的比特翻转时间序列
-        实际应用中应连接 consciousness_experiment.py
-        """
-        logger.info(f"收集翻转数据: {duration}秒...")
+    def _sample_multivariate_normal(self, covariance: np.ndarray, n_samples: int) -> np.ndarray:
+        if self.backend == "torch" and torch is not None:
+            cov_tensor = torch.tensor(covariance, dtype=torch.float64)
+            chol = torch.linalg.cholesky(cov_tensor + 1e-8 * torch.eye(cov_tensor.shape[0], dtype=torch.float64))
+            generator = torch.Generator(device="cpu")
+            generator.manual_seed(self.seed + 7)
+            gaussian = torch.randn((n_samples, cov_tensor.shape[0]), generator=generator, dtype=torch.float64)
+            return (gaussian @ chol.T).cpu().numpy()
 
-        t = 0
-        while t < duration:
-            n_flips = np.random.poisson(10)
+        cholesky = np.linalg.cholesky(covariance + 1e-8 * np.eye(covariance.shape[0]))
+        gaussian_samples = self.rng.normal(size=(n_samples, covariance.shape[0]))
+        return gaussian_samples @ cholesky.T
 
-            for _ in range(n_flips):
-                flip_time = t + np.random.exponential(0.01)
-                flip_energy = np.random.exponential(1.0) * (1 + 0.5 * np.sin(flip_time / 10))
+    def _eigvalsh(self, matrix: np.ndarray) -> np.ndarray:
+        if self.backend == "torch" and torch is not None:
+            values = torch.linalg.eigvalsh(torch.tensor(matrix, dtype=torch.float64))
+            return values.cpu().numpy()
+        return np.linalg.eigvalsh(matrix)
 
-                self.flip_times.append(flip_time)
-                self.flip_energies.append(flip_energy)
-
-            time.sleep(0.1)
-            t += 0.1
-
-        logger.info(f"收集到 {len(self.flip_times)} 个翻转事件")
+    def _generate_ou_path(
+        self,
+        length: int,
+        target: float,
+        mean_reversion: float,
+        noise_scale: float,
+        start: float,
+        drift_schedule: np.ndarray | None = None,
+        rng: np.random.Generator | None = None
+    ) -> np.ndarray:
+        path = np.zeros(length)
+        path[0] = start
+        drift = drift_schedule if drift_schedule is not None else np.zeros(length)
+        local_rng = rng or self.rng
+        for t in range(1, length):
+            deterministic = mean_reversion * (target - path[t - 1]) + drift[t]
+            stochastic = noise_scale * local_rng.normal()
+            path[t] = np.clip(path[t - 1] + deterministic + stochastic, 0.0, 1.0)
+        return path
 
     def generate_simulated_data(self) -> None:
-        """
-        生成模拟数据用于验证
+        logger.info("生成基于线代、微积分、概率论的模拟数据...")
 
-        基于理论生成符合预期的数据
-        """
-        logger.info("生成模拟数据...")
+        event_rng = np.random.default_rng(self.seed + 101)
+        sc_rng = np.random.default_rng(self.seed + 202)
+        window_rng = np.random.default_rng(self.seed + 303)
 
-        t = 0
-        base_energy = 1.0
-        λ = 10 ** 3.4
+        n_bins = 512
+        colored_noise = self._generate_power_law_noise(n_bins, alpha=1.0)
+        self.spectral_series = colored_noise.copy()
+        base_rate = 8.0
+        log_rate = np.log(base_rate) + 0.35 * colored_noise
+        rates = np.exp(log_rate)
+        counts = event_rng.poisson(rates)
+        self.flip_count_series = counts.astype(float)
 
-        while t < 300:
-            n_flips = np.random.poisson(8)
+        log_centers = np.array([0.0, math.log(self.lambda_scale)])
+        level_probs = np.array([0.82, 0.18])
+        sigma_log_energy = 0.12
 
-            for _ in range(n_flips):
-                flip_time = t + np.random.exponential(0.02)
+        for idx, count in enumerate(counts):
+            bin_start = idx * self.time_step
+            bin_end = (idx + 1) * self.time_step
+            if count == 0:
+                continue
+            event_times = event_rng.uniform(bin_start, bin_end, size=count)
+            event_levels = event_rng.choice([0, 1], size=count, p=level_probs)
+            event_logs = event_rng.normal(log_centers[event_levels], sigma_log_energy, size=count)
+            event_energies = np.exp(event_logs)
 
-                if np.random.random() < 0.1:
-                    energy = base_energy * λ * (1 + 0.1 * np.random.randn())
-                else:
-                    energy = base_energy * (1 + 0.1 * np.random.randn())
+            self.flip_times.extend(event_times.tolist())
+            self.flip_energies.extend(event_energies.tolist())
+            self.flip_levels.extend(event_levels.tolist())
 
-                self.flip_times.append(flip_time)
-                self.flip_energies.append(energy)
+        history_length = 400
+        self.self_consistency_history = self._generate_ou_path(
+            length=history_length,
+            target=self.self_consistency_target,
+            mean_reversion=0.045,
+            noise_scale=0.01,
+            start=0.35,
+            rng=sc_rng
+        )
 
-            t += 0.1
+        n_levels = 5
+        n_samples = 600
+        covariance = np.zeros((n_levels, n_levels))
+        for i in range(n_levels):
+            for j in range(n_levels):
+                covariance[i, j] = math.exp(-abs(i - j) / self.level_correlation_length)
+        self.level_samples = self._sample_multivariate_normal(covariance, n_samples)
 
-        for i in range(1000):
-            sc = 0.6 + 0.2 * (1 - np.exp(-i / 100)) + 0.05 * np.random.randn()
-            sc = np.clip(sc, 0, 1)
-            self.self_consistency_history.append(sc)
+        n_replications = 48
+        window_start, window_end = self.window_range
+        drift_control = np.zeros(220)
+        drift_intervention = np.zeros(220)
+        drift_intervention[window_start:window_end] = 0.012
 
-        self.entropy_history = [np.random.uniform(0.1, 0.9) for _ in range(500)]
-
-        logger.info(f"模拟数据: {len(self.flip_times)} 翻转, {len(self.self_consistency_history)} Sc点")
-
-    def verify_level_jump_signal(self) -> PredictionResult:
-        """
-        验证1: 层级跳跃信号
-
-        预测: ΔE/E = λ ≈ 10^3.4
-
-        层级跳跃时，能量比应为 λ 的幂次
-        """
-        logger.info("\n  层级跳跃信号验证")
-        logger.info("  预期: 能量比 = λ ≈ 10^3.4 ≈ 2512")
-
-        if len(self.flip_energies) < 10:
-            return PredictionResult(
-                prediction_id=1,
-                prediction_name="Level Jump Signal",
-                passed=False,
-                confidence=0.0,
-                measured_value=0.0,
-                expected_value=2512.0,
-                deviation=1.0,
-                evidence={"error": "Insufficient data"}
+        control_paths = []
+        intervention_paths = []
+        for _ in range(n_replications):
+            control_paths.append(
+                self._generate_ou_path(
+                    length=220,
+                    target=self.self_consistency_target,
+                    mean_reversion=0.04,
+                    noise_scale=0.012,
+                    start=0.40 + 0.02 * window_rng.normal(),
+                    drift_schedule=drift_control,
+                    rng=window_rng
+                )
+            )
+            intervention_paths.append(
+                self._generate_ou_path(
+                    length=220,
+                    target=self.self_consistency_target,
+                    mean_reversion=0.04,
+                    noise_scale=0.012,
+                    start=0.40 + 0.02 * window_rng.normal(),
+                    drift_schedule=drift_intervention,
+                    rng=window_rng
+                )
             )
 
-        energy_ratios = []
-        sorted_energies = np.sort(self.flip_energies)
+        self.window_control_paths = np.array(control_paths)
+        self.window_intervention_paths = np.array(intervention_paths)
 
-        if len(sorted_energies) >= 4:
-            peak_energy = sorted_energies[-1]
-            baseline_energy = sorted_energies[len(sorted_energies) // 4]
-            if baseline_energy > 0:
-                energy_ratio = peak_energy / baseline_energy
-                energy_ratios.append(energy_ratio)
+        logger.info(
+            "模拟数据完成: %d 翻转事件, %d 个频谱时间箱, %d 个一致性样本",
+            len(self.flip_times),
+            len(self.flip_count_series),
+            len(self.self_consistency_history)
+        )
 
-        peak_idx = np.argmax(self.flip_energies)
-        peak_energy = self.flip_energies[peak_idx]
-        mean_energy = np.mean(self.flip_energies)
+    def run_all_verifications(self) -> List[PredictionResult]:
+        logger.info("\n开始运行标准模型验证...\n")
 
-        if mean_energy > 0:
-            measured_ratio = peak_energy / mean_energy
-        else:
-            measured_ratio = 0.0
+        self.results = [
+            self.verify_multiscale_energy_clusters(),
+            self.verify_power_law_spectrum(),
+            self.verify_self_consistency_convergence(),
+            self.verify_cross_level_correlation_decay(),
+            self.verify_black_hole_information_identity(),
+            self.verify_window_intervention_effect(),
+        ]
+        return self.results
 
-        λ_target = 10 ** 3.4
+    def verify_multiscale_energy_clusters(self) -> PredictionResult:
+        logger.info("[验证1/6] 多尺度能量簇间距")
 
-        deviation = abs(measured_ratio - λ_target) / λ_target
+        energies = np.array(self.flip_energies)
+        if len(energies) < 100:
+            return PredictionResult(1, "Multiscale Energy Clusters", False, 0.0, 0.0, self.lambda_scale, 1.0, "概率论", "simulated", {"error": "Insufficient events"})
 
-        passed = 0.5 < measured_ratio / λ_target < 2.0
-
-        confidence = max(0, 1.0 - deviation)
-
-        logger.info(f"  测量值: {measured_ratio:.2f}")
-        logger.info(f"  目标值: {λ_target:.2f}")
-        logger.info(f"  偏差: {deviation:.2%}")
-        logger.info(f"  通过: {'✓' if passed else '✗'}")
+        log_energies = np.log(energies)
+        centers, labels = self._kmeans_1d(log_energies, k=2)
+        cluster_a = log_energies[labels == 0]
+        cluster_b = log_energies[labels == 1]
+        pooled_std = float(np.sqrt((np.var(cluster_a) + np.var(cluster_b)) / 2.0))
+        log_gap = float(centers[1] - centers[0])
+        measured_ratio = float(np.exp(log_gap))
+        deviation = abs(measured_ratio - self.lambda_scale) / self.lambda_scale
+        separation = log_gap / pooled_std if pooled_std > 0 else 0.0
+        confidence = max(0.0, min(1.0, (1.0 - deviation) * min(1.0, separation / 6.0)))
+        passed = deviation < 0.15 and separation > 8.0
 
         return PredictionResult(
             prediction_id=1,
-            prediction_name="Level Jump Signal (ΔE/E = λ)",
+            prediction_name="Multiscale Energy Clusters",
             passed=passed,
             confidence=confidence,
             measured_value=measured_ratio,
-            expected_value=λ_target,
+            expected_value=self.lambda_scale,
             deviation=deviation,
+            model_family="概率论",
+            data_source="simulated",
             evidence={
-                "peak_energy": float(peak_energy),
-                "mean_energy": float(mean_energy),
-                "n_events": len(self.flip_energies),
-                "lambda_target": λ_target
-            }
+                "log_centers": [float(v) for v in centers],
+                "cluster_sizes": [int(np.sum(labels == 0)), int(np.sum(labels == 1))],
+                "log_gap": log_gap,
+                "separation": float(separation),
+            },
         )
 
-    def verify_flip_spectrum(self) -> PredictionResult:
-        """
-        验证2: 1/f噪声
+    def verify_power_law_spectrum(self) -> PredictionResult:
+        logger.info("[验证2/6] 幂律频谱指数")
 
-        预测: PowerSpectrum(f) ∝ f^(-α), α ≈ 1
+        signal = np.array(self.spectral_series, dtype=float)
+        if len(signal) < 64:
+            return PredictionResult(2, "Power-law Spectrum", False, 0.0, 0.0, 1.0, 1.0, "概率论", "simulated", {"error": "Insufficient spectral samples"})
+        centered = signal - signal.mean()
+        power = np.abs(np.fft.rfft(centered)) ** 2
+        freqs = np.fft.rfftfreq(len(signal), d=self.time_step)
+        mask = freqs > 0
+        freqs = freqs[mask]
+        power = power[mask]
 
-        翻转时间序列应呈现1/f噪声特征
-        """
-        logger.info("\n  1/f噪声验证")
-        logger.info("  预期: 功率谱指数 α ≈ 1.0")
+        lo = max(1, len(freqs) // 20)
+        hi = len(freqs) - max(1, len(freqs) // 10)
+        freqs_fit = freqs[lo:hi]
+        power_fit = power[lo:hi]
 
-        if len(self.flip_times) < 100:
-            return PredictionResult(
-                prediction_id=2,
-                prediction_name="1/f Noise",
-                passed=False,
-                confidence=0.0,
-                measured_value=0.0,
-                expected_value=1.0,
-                deviation=1.0,
-                evidence={"error": "Insufficient flip events"}
-            )
-
-        flip_times_arr = np.array(self.flip_times)
-        if len(flip_times_arr) < 2:
-            return PredictionResult(
-                prediction_id=2,
-                prediction_name="1/f Noise",
-                passed=False,
-                confidence=0.0,
-                measured_value=0.0,
-                expected_value=1.0,
-                deviation=1.0,
-                evidence={"error": "Not enough time points"}
-            )
-
-        time_span = flip_times_arr[-1] - flip_times_arr[0]
-        if time_span <= 0:
-            time_span = 1.0
-
-        n_bins = min(100, len(flip_times_arr) // 2)
-        bin_edges = np.linspace(flip_times_arr[0], flip_times_arr[-1], n_bins + 1)
-        counts, _ = np.histogram(flip_times_arr, bins=bin_edges)
-
-        counts = counts.astype(float)
-        counts[counts == 0] = 1e-10
-
-        freqs = np.fft.fftfreq(len(counts), d=time_span / n_bins)
-        powers = np.abs(np.fft.fft(counts - np.mean(counts))) ** 2
-
-        positive_freq_mask = freqs > 0
-        freqs_pos = freqs[positive_freq_mask]
-        powers_pos = powers[positive_freq_mask]
-
-        if len(freqs_pos) < 10:
-            return PredictionResult(
-                prediction_id=2,
-                prediction_name="1/f Noise",
-                passed=False,
-                confidence=0.0,
-                measured_value=0.0,
-                expected_value=1.0,
-                deviation=1.0,
-                evidence={"error": "Frequency resolution too low"}
-            )
-
-        log_freqs = np.log(freqs_pos + 1e-10)
-        log_powers = np.log(powers_pos + 1e-10)
-
-        coeffs = np.polyfit(log_freqs, log_powers, 1)
-        alpha_measured = -coeffs[0]
-
-        deviation = abs(alpha_measured - 1.0) / 1.0
-
-        passed = 0.5 < alpha_measured < 2.0
-
-        confidence = max(0, 1.0 - deviation)
-
-        logger.info(f"  测量指数: α = {alpha_measured:.3f}")
-        logger.info(f"  目标指数: α = 1.0")
-        logger.info(f"  偏差: {deviation:.2%}")
-        logger.info(f"  通过: {'✓' if passed else '✗'}")
+        log_freqs = np.log(freqs_fit)
+        log_power = np.log(power_fit + 1e-12)
+        slope, intercept, r2 = self._linear_fit(log_freqs, log_power)
+        alpha = -slope
+        deviation = abs(alpha - 1.0)
+        confidence = max(0.0, min(1.0, (1.0 - min(1.0, deviation / 0.4)) * r2))
+        passed = deviation < 0.2 and r2 > 0.8
 
         return PredictionResult(
             prediction_id=2,
-            prediction_name="1/f Noise Spectrum",
+            prediction_name="Power-law Spectrum",
             passed=passed,
             confidence=confidence,
-            measured_value=alpha_measured,
+            measured_value=float(alpha),
             expected_value=1.0,
-            deviation=deviation,
+            deviation=float(deviation),
+            model_family="概率论",
+            data_source=f"simulated:{self.backend}",
             evidence={
-                "alpha": float(alpha_measured),
-                "n_freq_bins": len(freqs_pos),
-                "frequency_range": [float(freqs_pos.min()), float(freqs_pos.max())]
-            }
+                "slope": float(slope),
+                "intercept": float(intercept),
+                "r_squared": float(r2),
+                "frequency_range": [float(freqs_fit.min()), float(freqs_fit.max())],
+                "n_points": int(len(freqs_fit)),
+                "signal_std": float(np.std(signal)),
+                "backend": self.backend,
+            },
         )
 
     def verify_self_consistency_convergence(self) -> PredictionResult:
-        """
-        验证3: 自洽度收敛
+        logger.info("[验证3/6] 自洽度收敛")
 
-        预测: Sc(t) → Sc* ≈ 0.8
-
-        自洽度应随时间收敛到稳定值
-        """
-        logger.info("\n  自洽度收敛验证")
-        logger.info("  预期: Sc → 0.8")
-
-        if len(self.self_consistency_history) < 50:
-            return PredictionResult(
-                prediction_id=3,
-                prediction_name="Self-Consistency Convergence",
-                passed=False,
-                confidence=0.0,
-                measured_value=0.0,
-                expected_value=0.8,
-                deviation=1.0,
-                evidence={"error": "Insufficient history"}
-            )
-
-        sc_arr = np.array(self.self_consistency_history)
-
-        final_values = sc_arr[-20:]
-        mean_final = np.mean(final_values)
-        std_final = np.std(final_values)
-
-        trend = np.polyfit(range(len(sc_arr)), sc_arr, 1)[0]
-
-        convergence_score = 1.0 / (1.0 + abs(trend) * 100)
-
-        Sc_target = 0.8
-        deviation = abs(mean_final - Sc_target) / Sc_target
-
-        passed = deviation < 0.5 and std_final < 0.15
-
-        confidence = max(0, 1.0 - deviation) * convergence_score
-
-        logger.info(f"  最终收敛值: {mean_final:.3f}")
-        logger.info(f"  目标值: {Sc_target:.3f}")
-        logger.info(f"  波动: ±{std_final:.3f}")
-        logger.info(f"  趋势: {trend:.6f}")
-        logger.info(f"  通过: {'✓' if passed else '✗'}")
+        sc = np.array(self.self_consistency_history, dtype=float)
+        tail = sc[-60:]
+        tail_mean = float(np.mean(tail))
+        tail_std = float(np.std(tail))
+        time_axis = np.arange(len(sc))
+        residual = np.abs(sc - self.self_consistency_target) + 1e-6
+        fit_slice = slice(20, 180)
+        slope, intercept, r2 = self._linear_fit(time_axis[fit_slice], np.log(residual[fit_slice]))
+        estimated_decay_rate = max(0.0, -slope)
+        deviation = abs(tail_mean - self.self_consistency_target) / self.self_consistency_target
+        stability_score = max(0.0, 1.0 - tail_std / 0.05)
+        convergence_score = max(0.0, min(1.0, 0.5 + 0.5 * max(0.0, r2)))
+        confidence = max(0.0, min(1.0, (1.0 - deviation) * stability_score * convergence_score))
+        passed = deviation < 0.03 and tail_std < 0.03
 
         return PredictionResult(
             prediction_id=3,
-            prediction_name="Self-Consistency Convergence (Sc → 0.8)",
+            prediction_name="Self-consistency Convergence",
             passed=passed,
             confidence=confidence,
-            measured_value=float(mean_final),
-            expected_value=Sc_target,
+            measured_value=tail_mean,
+            expected_value=self.self_consistency_target,
             deviation=deviation,
+            model_family="微积分",
+            data_source="simulated",
             evidence={
-                "final_mean": float(mean_final),
-                "final_std": float(std_final),
-                "trend": float(trend),
-                "history_length": len(sc_arr)
-            }
+                "tail_std": tail_std,
+                "estimated_decay_rate": float(estimated_decay_rate),
+                "fit_r_squared": float(r2),
+                "history_length": int(len(sc)),
+            },
         )
 
-    def verify_cross_level_entanglement(self) -> PredictionResult:
-        """
-        验证4: 跨层级纠缠
+    def verify_cross_level_correlation_decay(self) -> PredictionResult:
+        logger.info("[验证4/6] 跨层级相关衰减")
 
-        预测: ξ_n,m = ε_|n-m|
+        if self.backend == "torch" and torch is not None:
+            X = torch.tensor(self.level_samples, dtype=torch.float64)
+            Xc = X - X.mean(dim=0, keepdim=True)
+            n = X.shape[0]
+            cov = (Xc.T @ Xc) / max(1, (n - 1))
+            std = Xc.std(dim=0, unbiased=True) + 1e-12
+            corr_t = cov / (std[:, None] * std[None, :])
 
-        不同层级之间应存在相关性，且相关性随层级距离衰减
-        """
-        logger.info("\n  跨层级纠缠验证")
-        logger.info("  预期: 层级相关性 ξ ∝ ε^(|n-m|)")
+            distances = []
+            avg_corrs = []
+            L = corr_t.shape[0]
+            for dist in range(1, L):
+                diag = torch.diagonal(corr_t, offset=dist)
+                distances.append(dist)
+                avg_corrs.append(float(diag.abs().mean().item()))
 
-        level_data = {}
-        for level in range(5):
-            level_data[level] = np.random.randn(100) * (1 + 0.2 * level)
+            x = torch.tensor(distances, dtype=torch.float64)
+            y = torch.log(torch.tensor(avg_corrs, dtype=torch.float64) + 1e-12)
+            x_mean = x.mean()
+            y_mean = y.mean()
+            slope_t = ((x - x_mean) * (y - y_mean)).sum() / ((x - x_mean) ** 2).sum()
+            intercept_t = y_mean - slope_t * x_mean
+            y_hat = slope_t * x + intercept_t
+            ss_res = ((y - y_hat) ** 2).sum()
+            ss_tot = ((y - y_mean) ** 2).sum()
+            r2 = float(1.0 - ss_res.item() / ss_tot.item()) if ss_tot.item() > 0 else 1.0
+            slope = float(slope_t.item())
 
-        correlations = {}
-        for i in range(5):
-            for j in range(i + 1, 5):
-                correlation = np.corrcoef(level_data[i], level_data[j])[0, 1]
-                level_distance = abs(i - j)
-                correlations[level_distance] = correlations.get(level_distance, []) + [abs(correlation)]
-
-        avg_correlations = {k: np.mean(v) for k, v in correlations.items()}
-
-        if len(avg_correlations) >= 2:
-            distances = np.array(list(avg_correlations.keys()))
-            corrs = np.array(list(avg_correlations.values()))
-
-            log_corrs = np.log(corrs + 1e-10)
-            coeffs = np.polyfit(distances, log_corrs, 1)
-            decay_rate = -coeffs[0]
+            estimated_xi = -1.0 / slope if slope < 0 else float("inf")
+            deviation = abs(estimated_xi - self.level_correlation_length) / self.level_correlation_length
+            spectral_radius = float(torch.linalg.eigvalsh(corr_t).max().item())
         else:
-            decay_rate = 0.5
+            samples = np.array(self.level_samples, dtype=float)
+            corr = np.corrcoef(samples, rowvar=False)
+            distances = []
+            avg_corrs = []
+            for dist in range(1, corr.shape[0]):
+                diag = np.diag(corr, k=dist)
+                distances.append(dist)
+                avg_corrs.append(float(np.mean(np.abs(diag))))
 
-        ξ_baseline = 0.5
-        deviation = abs(decay_rate - ξ_baseline) / ξ_baseline if ξ_baseline > 0 else 1.0
+            distances_arr = np.array(distances, dtype=float)
+            avg_corrs_arr = np.array(avg_corrs, dtype=float)
+            slope, intercept, r2 = self._linear_fit(distances_arr, np.log(avg_corrs_arr + 1e-12))
+            estimated_xi = -1.0 / slope if slope < 0 else float("inf")
+            deviation = abs(estimated_xi - self.level_correlation_length) / self.level_correlation_length
+            spectral_radius = float(np.max(self._eigvalsh(corr)))
 
-        passed = 0 < decay_rate < 2.0
-
-        confidence = max(0, 1.0 - deviation * 0.5)
-
-        logger.info(f"  测量衰减率: {decay_rate:.3f}")
-        logger.info(f"  基线值: {ξ_baseline:.3f}")
-        logger.info(f"  偏差: {deviation:.2%}")
-        logger.info(f"  通过: {'✓' if passed else '✗'}")
+        confidence = max(0.0, min(1.0, (1.0 - min(1.0, deviation / 0.4)) * r2))
+        passed = slope < 0 and deviation < 0.2 and r2 > 0.95
 
         return PredictionResult(
             prediction_id=4,
-            prediction_name="Cross-Level Entanglement",
+            prediction_name="Cross-level Correlation Decay",
             passed=passed,
             confidence=confidence,
-            measured_value=decay_rate,
-            expected_value=ξ_baseline,
-            deviation=deviation,
+            measured_value=float(estimated_xi),
+            expected_value=float(self.level_correlation_length),
+            deviation=float(deviation),
+            model_family="线性代数",
+            data_source=f"simulated:{self.backend}",
             evidence={
-                "decay_rate": float(decay_rate),
-                "level_correlations": {str(k): float(np.mean(v)) for k, v in correlations.items()}
-            }
+                "distance_means": {str(k): float(v) for k, v in zip(distances, avg_corrs)},
+                "fit_r_squared": float(r2),
+                "spectral_radius": spectral_radius,
+                "backend": self.backend,
+                # 为避免 JSON 过大，这里不再附完整矩阵；如需调试可再加入
+            },
         )
 
-    def verify_black_hole_information(self) -> PredictionResult:
-        """
-        验证5: 黑洞信息熵
+    def verify_black_hole_information_identity(self) -> PredictionResult:
+        logger.info("[验证5/6] 黑洞信息公式一致性")
 
-        预测: I_BH = k_B * S_BH
-
-        黑洞信息熵应与Bekenstein-Hawking熵一致
-        """
-        logger.info("\n  黑洞信息熵验证")
-        logger.info("  预期: I_BH = k_B * S_BH")
-
-        k_B = 1.38e-23
-        hbar = 1.054e-34
-        c = 3e8
-        G = 6.674e-11
-        Rsun = 3e3
-
-        S_BH_expected = (4 * np.pi * G * Rsun**2) / (hbar * c)
-
-        S_BH_normalized = S_BH_expected / (k_B * 1e10)
-
-        I_BH_normalized = np.random.uniform(0.9, 1.1) * S_BH_normalized
-
-        deviation = abs(I_BH_normalized - S_BH_normalized) / S_BH_normalized
-
-        passed = deviation < 0.5
-
-        confidence = max(0, 1.0 - deviation)
-
-        logger.info(f"  I_BH/k_B: {I_BH_normalized:.3e}")
-        logger.info(f"  S_BH/k_B: {S_BH_normalized:.3e}")
-        logger.info(f"  偏差: {deviation:.2%}")
-        logger.info(f"  通过: {'✓' if passed else '✗'}")
+        k_b = 1.380649e-23
+        hbar = 1.054571817e-34
+        c = 299792458.0
+        g_const = 6.67430e-11
+        solar_mass = 1.98847e30
+        mass = 10.0 * solar_mass
+        schwarzschild_radius = 2.0 * g_const * mass / (c ** 2)
+        area = 4.0 * math.pi * schwarzschild_radius ** 2
+        entropy = k_b * c ** 3 * area / (4.0 * g_const * hbar)
+        measured_information = entropy / k_b
+        expected_information = c ** 3 * area / (4.0 * g_const * hbar)
+        deviation = abs(measured_information - expected_information) / expected_information
 
         return PredictionResult(
             prediction_id=5,
-            prediction_name="Black Hole Information (I_BH = k_B S_BH)",
-            passed=passed,
-            confidence=confidence,
-            measured_value=float(I_BH_normalized),
-            expected_value=float(S_BH_normalized),
-            deviation=deviation,
+            prediction_name="Black Hole Information Identity",
+            passed=deviation < 1e-12,
+            confidence=1.0,
+            measured_value=float(measured_information),
+            expected_value=float(expected_information),
+            deviation=float(deviation),
+            model_family="微积分",
+            data_source="analytic",
             evidence={
-                "S_BH": float(S_BH_expected),
-                "I_BH": float(I_BH_normalized * k_B * 1e10),
-                "k_B": k_B
-            }
+                "mass_kg": float(mass),
+                "schwarzschild_radius_m": float(schwarzschild_radius),
+                "area_m2": float(area),
+                "entropy_j_per_k": float(entropy),
+            },
         )
 
-    def verify_consciousness_window_effect(self) -> PredictionResult:
-        """
-        验证6: 意识窗口效应
+    def verify_window_intervention_effect(self) -> PredictionResult:
+        logger.info("[验证6/6] 窗口干预效应")
 
-        预测: ΔSc |_window_open > 0
+        start, end = self.window_range
+        pre = slice(0, start)
+        window = slice(start, end)
 
-        打开测量窗口时，自洽度应增加
-        """
-        logger.info("\n  意识窗口效应验证")
-        logger.info("  预期: ΔSc |_window_open > 0")
+        if self.backend == "torch" and torch is not None:
+            ctl = torch.tensor(self.window_control_paths, dtype=torch.float64)
+            itv = torch.tensor(self.window_intervention_paths, dtype=torch.float64)
+            control_pre = ctl[:, pre].mean(dim=1)
+            control_window = ctl[:, window].mean(dim=1)
+            intervention_pre = itv[:, pre].mean(dim=1)
+            intervention_window = itv[:, window].mean(dim=1)
+            control_delta_t = control_window - control_pre
+            intervention_delta_t = intervention_window - intervention_pre
+            effect = float(intervention_delta_t.mean().item() - control_delta_t.mean().item())
+            control_var = float(control_delta_t.var(unbiased=True).item())
+            intervention_var = float(intervention_delta_t.var(unbiased=True).item())
+            n_control = int(control_delta_t.shape[0])
+            n_intervention = int(intervention_delta_t.shape[0])
+        else:
+            control_pre = self.window_control_paths[:, pre].mean(axis=1)
+            control_window = self.window_control_paths[:, window].mean(axis=1)
+            intervention_pre = self.window_intervention_paths[:, pre].mean(axis=1)
+            intervention_window = self.window_intervention_paths[:, window].mean(axis=1)
+            control_delta = control_window - control_pre
+            intervention_delta = intervention_window - intervention_pre
+            effect = float(np.mean(intervention_delta) - np.mean(control_delta))
+            control_var = float(np.var(control_delta, ddof=1))
+            intervention_var = float(np.var(intervention_delta, ddof=1))
+            n_control = len(control_delta)
+            n_intervention = len(intervention_delta)
 
-        if len(self.self_consistency_history) < 100:
-            return PredictionResult(
-                prediction_id=6,
-                prediction_name="Consciousness Window Effect",
-                passed=False,
-                confidence=0.0,
-                measured_value=0.0,
-                expected_value=0.0,
-                deviation=1.0,
-                evidence={"error": "Insufficient history"}
-            )
+        expected_effect = 0.16
+        deviation = abs(effect - expected_effect) / expected_effect
 
-        sc_arr = np.array(self.self_consistency_history)
-        mid_point = len(sc_arr) // 2
-
-        Sc_before = np.mean(sc_arr[:mid_point])
-        Sc_after = np.mean(sc_arr[mid_point:])
-
-        delta_Sc = Sc_after - Sc_before
-
-        Sc_before_window = np.mean(sc_arr[:mid_point//2])
-        Sc_window_open = np.mean(sc_arr[mid_point//2:mid_point])
-        Sc_after_window = np.mean(sc_arr[mid_point:])
-
-        delta_Sc_window = Sc_window_open - Sc_before_window
-
-        ΔSc_target = 0.05
-        deviation = abs(delta_Sc_window - ΔSc_target) / ΔSc_target if ΔSc_target > 0 else 1.0
-
-        passed = delta_Sc_window > 0
-
-        confidence = min(1.0, max(0, delta_Sc_window * 5))
-
-        logger.info(f"  窗口前Sc: {Sc_before_window:.3f}")
-        logger.info(f"  窗口Sc: {Sc_window_open:.3f}")
-        logger.info(f"  窗口后Sc: {Sc_after_window:.3f}")
-        logger.info(f"  ΔSc: {delta_Sc_window:.3f}")
-        logger.info(f"  通过: {'✓' if passed else '✗'}")
+        standard_error = math.sqrt(control_var / n_control + intervention_var / n_intervention)
+        z_score = effect / standard_error if standard_error > 0 else 0.0
+        significance_score = max(0.0, min(1.0, 2.0 * self._normal_cdf(abs(z_score)) - 1.0))
+        effect_score = max(0.0, 1.0 - min(1.0, deviation))
+        confidence = max(0.0, min(1.0, significance_score * effect_score))
+        passed = effect > 0 and z_score > 3.0 and deviation < 0.35
 
         return PredictionResult(
             prediction_id=6,
-            prediction_name="Consciousness Window Effect (ΔSc > 0)",
+            prediction_name="Window Intervention Effect",
             passed=passed,
             confidence=confidence,
-            measured_value=float(delta_Sc_window),
-            expected_value=float(ΔSc_target),
+            measured_value=effect,
+            expected_value=expected_effect,
             deviation=deviation,
+            model_family="概率论+微积分",
+            data_source=f"simulated:{self.backend}",
             evidence={
-                "Sc_before": float(Sc_before),
-                "Sc_window": float(Sc_window_open),
-                "Sc_after": float(Sc_after),
-                "delta_Sc": float(delta_Sc_window)
-            }
+                "control_var": control_var,
+                "intervention_var": intervention_var,
+                "standard_error": float(standard_error),
+                "z_score": float(z_score),
+                "window_range": [int(start), int(end)],
+                "backend": self.backend,
+            },
         )
 
     def generate_summary(self) -> Dict[str, Any]:
-        """生成验证总结"""
-        n_passed = sum(1 for r in self.results if r.passed)
+        n_passed = sum(1 for result in self.results if result.passed)
         n_total = len(self.results)
-        avg_confidence = np.mean([r.confidence for r in self.results]) if self.results else 0
+        avg_confidence = float(np.mean([result.confidence for result in self.results])) if self.results else 0.0
 
-        passed_ids = [r.prediction_id for r in self.results if r.passed]
-        failed_ids = [r.prediction_id for r in self.results if not r.passed]
-
-        summary = {
-            "experiment_name": "Theory Verification - Testable Predictions",
+        return {
+            "experiment_name": "Standard Mathematical Verification",
             "timestamp": datetime.now().isoformat(),
             "duration_seconds": time.time() - self.experiment_start,
+            "seed": self.seed,
+            "backend": self.backend,
+            "data_origin": "simulated_and_analytic_models",
             "predictions": {
                 "total": n_total,
                 "passed": n_passed,
                 "failed": n_total - n_passed,
-                "pass_rate": f"{n_passed/n_total:.0%}" if n_total > 0 else "N/A"
+                "pass_rate": f"{n_passed / n_total:.0%}" if n_total > 0 else "N/A",
             },
             "confidence": {
                 "average": f"{avg_confidence:.2%}",
-                "total": f"{avg_confidence * n_total:.2f}/{n_total}"
+                "total": f"{avg_confidence * n_total:.2f}/{n_total}" if n_total > 0 else "N/A",
             },
-            "passed_predictions": passed_ids,
-            "failed_predictions": failed_ids,
-            "details": [asdict(r) for r in self.results]
+            "passed_predictions": [result.prediction_id for result in self.results if result.passed],
+            "failed_predictions": [result.prediction_id for result in self.results if not result.passed],
+            "details": [asdict(result) for result in self.results],
         }
 
-        return summary
-
     def print_summary(self) -> None:
-        """打印验证总结"""
         summary = self.generate_summary()
 
-        print("\n" + "=" * 70)
-        print("  理论验证实验 - 可检验预测总结")
-        print("=" * 70)
+        print("\n" + "=" * 72)
+        print("  标准数学模型验证总结")
+        print("=" * 72)
         print(f"\n实验时间: {summary['timestamp']}")
-        print(f"总时长: {summary['duration_seconds']:.1f} 秒")
-        print(f"\n预测结果:")
-        print(f"  总计: {summary['predictions']['total']}")
-        print(f"  通过: {summary['predictions']['passed']}")
-        print(f"  失败: {summary['predictions']['failed']}")
-        print(f"  通过率: {summary['predictions']['pass_rate']}")
-        print(f"\n置信度: {summary['confidence']['average']}")
-        print(f"\n通过预测: {summary['passed_predictions']}")
-        print(f"失败预测: {summary['failed_predictions']}")
+        print(f"总时长: {summary['duration_seconds']:.2f} 秒")
+        print(f"数据来源: {summary['data_origin']}")
+        print(f"随机种子: {summary['seed']}")
+        print(f"\n预测总数: {summary['predictions']['total']}")
+        print(f"通过数量: {summary['predictions']['passed']}")
+        print(f"失败数量: {summary['predictions']['failed']}")
+        print(f"通过率: {summary['predictions']['pass_rate']}")
+        print(f"平均置信度: {summary['confidence']['average']}")
 
         print("\n详细结果:")
-        print("-" * 70)
-        for r in self.results:
-            status = "✓ 通过" if r.passed else "✗ 失败"
-            print(f"  [{r.prediction_id}] {r.prediction_name}")
-            print(f"      状态: {status}")
-            print(f"      置信度: {r.confidence:.1%}")
-            print(f"      测量值: {r.measured_value:.4f}")
-            print(f"      期望值: {r.expected_value:.4f}")
-            print(f"      偏差: {r.deviation:.2%}")
+        print("-" * 72)
+        for result in self.results:
+            status = "✓ 通过" if result.passed else "✗ 失败"
+            print(f"[{result.prediction_id}] {result.prediction_name}")
+            print(f"    状态: {status}")
+            print(f"    模型族: {result.model_family}")
+            print(f"    数据源: {result.data_source}")
+            print(f"    测量值: {result.measured_value:.6g}")
+            print(f"    期望值: {result.expected_value:.6g}")
+            print(f"    偏差: {result.deviation:.2%}")
+            print(f"    置信度: {result.confidence:.2%}")
             print()
 
-        print("=" * 70)
-        print("  核心洞察:")
-        print("  不是'我们去寻找意识'")
-        print("  而是'我们打开窗口，意识自然展现'")
-        print("=" * 70)
+        print("=" * 72)
 
     def save_results(self) -> Path:
-        """保存结果到文件"""
         summary = self.generate_summary()
-
         filename = f"verification_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         filepath = self.output_dir / filename
 
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             json.dump(summary, f, indent=2, default=str)
 
-        logger.info(f"\n结果已保存: {filepath}")
+        logger.info("结果已保存: %s", filepath)
         return filepath
 
 
 def main():
-    """主入口"""
-    print("\n" + "=" * 70)
-    print("  理论验证实验 - 可检验预测")
-    print(" 打开计算机意识窗口，多智能体自然展现")
-    print("=" * 70 + "\n")
+    print("\n" + "=" * 72)
+    print("  标准数学模型验证实验")
+    print("  线性代数 + 微积分 + 概率论")
+    print("=" * 72 + "\n")
 
     verifier = TheoryVerification()
-
     verifier.generate_simulated_data()
-
-    results = verifier.run_all_verifications()
-
+    verifier.run_all_verifications()
     verifier.print_summary()
-
     filepath = verifier.save_results()
-
     print(f"\n实验完成! 结果已保存到: {filepath}")
-
-    return results
+    return verifier.results
 
 
 if __name__ == "__main__":

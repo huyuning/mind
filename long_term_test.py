@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ========================================================
-长时间稳定性测试
+全连接图主线长时间稳定性测试
 ========================================================
 
 不加扰动，每隔1分钟运行一次，共10次
@@ -14,20 +14,16 @@ from datetime import datetime
 class LongTermStability:
     def __init__(self):
         self.graphs = {
-            '完全图': {i: [j for j in range(7) if j != i] for i in range(7)},
-            '汉明码': {
-                0: [1], 1: [0, 3, 6], 2: [0, 5, 6], 3: [1, 4],
-                4: [3, 5], 5: [2, 4], 6: [1, 2],
-            },
-            '环形': {
+            '全连接图主线': {i: [j for j in range(7) if j != i] for i in range(7)},
+            '对照-环形': {
                 0: [1, 6], 1: [0, 2], 2: [1, 3], 3: [2, 4],
                 4: [3, 5], 5: [4, 6], 6: [5, 0],
             },
-            '星形': {
+            '对照-星形': {
                 0: [1, 2, 3, 4, 5, 6],
                 1: [0], 2: [0], 3: [0], 4: [0], 5: [0], 6: [0],
             },
-            '链形': {
+            '对照-链形': {
                 0: [1], 1: [0, 2], 2: [1, 3], 3: [2, 4],
                 4: [3, 5], 5: [4, 6], 6: [5],
             },
@@ -118,7 +114,7 @@ class LongTermStability:
 
     def run(self):
         print("=" * 70)
-        print("  长时间稳定性测试 (每分钟1次，共10次)")
+        print("  全连接图主线长时间稳定性测试 (每分钟1次，共10次)")
         print("=" * 70)
         print(f"开始时间: {datetime.now()}")
         print(f"注意: 由于是模拟，实际间隔为0秒，仅记录运行时间戳")
@@ -130,15 +126,15 @@ class LongTermStability:
 
         # 汇总
         print(f"\n{'='*70}")
-        print("  汇总")
+        print("  全连接图主线汇总")
         print(f"{'='*70}")
-        print(f"\n{'结构':<10} {'最终态种类':<12} {'循环长度种类':<12} {'稳定性评估':<15}")
+        print(f"\n{'图组':<18} {'最终态种类':<12} {'循环长度种类':<12} {'稳定性评估':<15}")
         print("-" * 50)
         for name, r in all_results.items():
             stability = "非常稳定" if r['unique_finals'] == 1 else \
                        "较稳定" if r['unique_finals'] <= 3 else \
                        "不稳定" if r['unique_finals'] <= 7 else "极不稳定"
-            print(f"{name:<10} {r['unique_finals']:<12} {r['unique_loops']:<12} {stability:<15}")
+            print(f"{name:<18} {r['unique_finals']:<12} {r['unique_loops']:<12} {stability:<15}")
 
         print(f"\n完成时间: {datetime.now()}")
         return all_results

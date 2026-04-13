@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ========================================================
-扫频变化测试
+全连接图主线扫频变化测试
 ========================================================
 
 在扫频过程中引入不同的随机性/变化：
@@ -17,12 +17,8 @@ from datetime import datetime
 class ScanVariationTest:
     def __init__(self):
         self.graphs = {
-            '完全图': {i: [j for j in range(7) if j != i] for i in range(7)},
-            '汉明码': {
-                0: [1], 1: [0, 3, 6], 2: [0, 5, 6], 3: [1, 4],
-                4: [3, 5], 5: [2, 4], 6: [1, 2],
-            },
-            '环形': {
+            '全连接图主线': {i: [j for j in range(7) if j != i] for i in range(7)},
+            '对照-环形': {
                 0: [1, 6], 1: [0, 2], 2: [1, 3], 3: [2, 4],
                 4: [3, 5], 5: [4, 6], 6: [5, 0],
             },
@@ -126,7 +122,7 @@ class ScanVariationTest:
 
     def run(self):
         print("=" * 70)
-        print("  扫频变化测试")
+        print("  全连接图主线扫频变化测试")
         print("=" * 70)
 
         methods = [
@@ -158,16 +154,16 @@ class ScanVariationTest:
 
         # 汇总
         print(f"\n{'='*70}")
-        print("  汇总对比")
+        print("  全连接图主线汇总")
         print(f"{'='*70}")
-        print(f"\n{'结构':<10} {'确定性':<12} {'随机位':<12} {'概率翻转':<12} {'温度噪声':<12}")
+        print(f"\n{'图组':<18} {'确定性':<12} {'随机位':<12} {'概率翻转':<12} {'温度噪声':<12}")
         print("-" * 60)
         for name, gr in all_results.items():
             det = "✓" if gr['确定性(syndrome)']['unique_loops'] == 1 else "✗"
             rnd = "✓" if gr['随机翻转位']['unique_loops'] == 1 else "✗"
             prob = "✓" if gr['概率性翻转(70%)']['unique_loops'] == 1 else "✗"
             temp = "✓" if gr['温度噪声(10%)']['unique_loops'] == 1 else "✗"
-            print(f"{name:<10} {det:<12} {rnd:<12} {prob:<12} {temp:<12}")
+            print(f"{name:<18} {det:<12} {rnd:<12} {prob:<12} {temp:<12}")
 
         return all_results
 

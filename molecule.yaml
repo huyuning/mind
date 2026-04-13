@@ -1,0 +1,51 @@
+name: H2O
+description: >
+  水分子的最小胞元图配置。O 作为中心胞元，H1/H2 作为外围胞元。
+  几何采用近似 104.5 度的二维投影，后续通过 projection_z 抬升到三维。
+
+nodes:
+  - id: O
+    element: O
+    x: 0.0
+    y: 0.0
+    components:
+      a3: -0.24
+      a8: 0.32
+  - id: H1
+    element: H
+    x: 0.96
+    y: 0.00
+    components:
+      a3: 0.03
+      a8: -0.09
+  - id: H2
+    element: H
+    x: -0.24
+    y: 0.93
+    components:
+      a3: 0.03
+      a8: -0.09
+
+edges:
+  - src: O
+    dst: H1
+    base_strength: 1.08
+    base_phase: 0.18
+  - src: O
+    dst: H2
+    base_strength: 1.08
+    base_phase: -0.18
+  - src: H1
+    dst: H2
+    base_strength: 0.18
+    base_phase: 0.55
+
+simulation:
+  duration: 6.0
+  dt: 0.04
+  coupling: 0.52
+  geometry_gain: 0.40
+  curvature_gain: 0.90
+  state_gain: 0.72
+  projection_z: a8
+  z_scale: 1.6
